@@ -13,9 +13,10 @@ it('shows the shared calendar after identity selection', () => {
   render(<App />);
 
   expect(screen.getByRole('grid', { name: '共享月历' })).toBeInTheDocument();
-  expect(
-    screen.getByRole('button', { name: '发送约会邀请' }),
-  ).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: '发起约会' })).toHaveAttribute(
+    'href',
+    '/invite',
+  );
 });
 
 it('requires the shared passphrase before identity selection', async () => {
