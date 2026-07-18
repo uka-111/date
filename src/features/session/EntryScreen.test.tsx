@@ -4,6 +4,15 @@ import { App } from '../../app/App';
 
 beforeEach(() => {
   sessionStorage.clear();
+  localStorage.clear();
+});
+
+it('shows the shared calendar after identity selection', () => {
+  sessionStorage.setItem('couple-date-partner', 'him');
+
+  render(<App />);
+
+  expect(screen.getByRole('grid', { name: '共享月历' })).toBeInTheDocument();
 });
 
 it('requires the shared passphrase before identity selection', async () => {

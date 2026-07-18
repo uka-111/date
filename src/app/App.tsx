@@ -1,8 +1,15 @@
+import { useMemo } from 'react';
+import { MonthCalendar } from '../features/calendar/MonthCalendar';
 import { EntryScreen } from '../features/session/EntryScreen';
+import { createLocalRepository } from '../storage/localRepository';
 import { SessionProvider, useSession } from './SessionProvider';
 
 function AppContent() {
   const { partnerId, signOut } = useSession();
+  const repository = useMemo(
+    () => createLocalRepository(window.localStorage),
+    [],
+  );
 
   if (!partnerId) return <EntryScreen />;
 
@@ -13,6 +20,7 @@ function AppContent() {
       <button type="button" onClick={signOut}>
         切换身份
       </button>
+      <MonthCalendar repository={repository} partnerId={partnerId} />
     </main>
   );
 }
