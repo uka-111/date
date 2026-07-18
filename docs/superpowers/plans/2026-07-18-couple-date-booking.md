@@ -444,7 +444,7 @@ it('requires the shared passphrase before identity selection', async () => {
 it('remembers the selected partner in session storage', async () => {
   const user = userEvent.setup();
   render(<App />);
-  await user.type(screen.getByLabelText('专属口令'), 'our-date');
+  await user.type(screen.getByLabelText('专属口令'), '2021121');
   await user.click(screen.getByRole('button', { name: '进入我们的日历' }));
   await user.click(screen.getByRole('button', { name: '我是她' }));
   expect(sessionStorage.getItem('couple-date-partner')).toBe('her');
@@ -459,7 +459,7 @@ Expected: FAIL because the entry flow is missing.
 
 - [ ] **Step 3: Implement the session provider and entry screen**
 
-Use `VITE_SHARED_PASSPHRASE` with local development fallback `our-date`. Store only the selected `PartnerId` in `sessionStorage`; never store the entered passphrase. Provide `partnerId`, `selectPartner`, and `signOut` from context. Display a clear note that the local passphrase is convenience protection rather than secure authentication.
+Use `VITE_SHARED_PASSPHRASE` with local development fallback `2021121`. Store only the selected `PartnerId` in `sessionStorage`; never store the entered passphrase. Provide `partnerId`, `selectPartner`, and `signOut` from context. Display a clear note that the local passphrase is convenience protection rather than secure authentication.
 
 - [ ] **Step 4: Run entry tests**
 
@@ -767,7 +767,7 @@ git commit -m "style: add responsive romantic interface"
 ```ts
 test('both partners can publish availability and complete an invitation', async ({ page }) => {
   await page.goto('/');
-  await page.getByLabel('专属口令').fill('our-date');
+  await page.getByLabel('专属口令').fill('2021121');
   await page.getByRole('button', { name: '进入我们的日历' }).click();
   await page.getByRole('button', { name: '我是他' }).click();
   await page.getByRole('button', { name: '发起约会' }).click();
@@ -810,7 +810,7 @@ The reset button opens a confirmation dialog, removes only `couple-date-booking`
 `.env.example` contains:
 
 ```dotenv
-VITE_SHARED_PASSPHRASE=our-date
+VITE_SHARED_PASSPHRASE=2021121
 ```
 
 - [ ] **Step 5: Run final verification**

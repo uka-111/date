@@ -36,7 +36,7 @@ it('remembers the selected partner in session storage', async () => {
   const user = userEvent.setup();
   render(<App />);
 
-  await user.type(screen.getByLabelText('专属口令'), 'our-date');
+  await user.type(screen.getByLabelText('专属口令'), '2021121');
   await user.click(screen.getByRole('button', { name: '进入我们的日历' }));
   await user.click(screen.getByRole('button', { name: '我是她' }));
 

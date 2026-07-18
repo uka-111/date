@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useSession } from '../../app/SessionProvider';
 
-const fallbackPassphrase = 'our-date';
+const fallbackPassphrase = '2021121';
 
 export function EntryScreen() {
   const { selectPartner } = useSession();

@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('both partners can complete a date invitation', async ({ page }) => {
   await page.goto('/');
 
-  await page.getByLabel('专属口令').fill('our-date');
+  await page.getByLabel('专属口令').fill('2021121');
   await page.getByRole('button', { name: '进入我们的日历' }).click();
   await page.getByRole('button', { name: '我是他' }).click();
 
@@ -17,7 +17,7 @@ test('both partners can complete a date invitation', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: '我的安排' })).toBeVisible();
   await page.getByRole('button', { name: '切换身份' }).click();
-  await page.getByLabel('专属口令').fill('our-date');
+  await page.getByLabel('专属口令').fill('2021121');
   await page.getByRole('button', { name: '进入我们的日历' }).click();
   await page.getByRole('button', { name: '我是她' }).click();
 
