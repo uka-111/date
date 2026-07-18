@@ -17,6 +17,7 @@ import type { PartnerId } from '../domain/models';
 import { createLocalRepository } from '../storage/localRepository';
 import type { DateBookingRepository } from './repository';
 import { AppShell } from './AppShell';
+import { DataRecoveryScreen } from './DataRecoveryScreen';
 import { SessionProvider, useSession } from './SessionProvider';
 
 interface InvitationRouteProps {
@@ -83,8 +84,21 @@ function AuthenticatedApp({ partnerId }: { partnerId: PartnerId }) {
   );
   const [dataVersion, setDataVersion] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
-  const database = repository.read();
   const refresh = () => setDataVersion((version) => version + 1);
+  let database;
+
+  try {
+    database = repository.read();
+  } catch {
+    return (
+      <DataRecoveryScreen
+        onReset={() => {
+          repository.reset();
+          refresh();
+        }}
+      />
+    );
+  }
 
   return (
     <AppShell
