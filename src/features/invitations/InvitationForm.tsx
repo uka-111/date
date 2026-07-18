@@ -91,7 +91,7 @@ export function InvitationForm({
   }
 
   return (
-    <form onSubmit={submit} noValidate>
+    <form className="form-card card" onSubmit={submit} noValidate>
       <div>
         <label htmlFor="invitation-date">日期</label>
         <input
@@ -121,24 +121,28 @@ export function InvitationForm({
 
       <fieldset>
         <legend>想一起做什么？</legend>
-        {activityOptions.map((option) => (
+        <div className="activity-grid">
+          {activityOptions.map((option) => (
+            <button
+              className="activity-option"
+              type="button"
+              key={option.value}
+              aria-pressed={activity === option.value}
+              onClick={() => setActivity(option.value)}
+            >
+              <span aria-hidden="true">{option.icon}</span> {option.label}
+            </button>
+          ))}
           <button
+            className="activity-option"
             type="button"
-            key={option.value}
-            aria-pressed={activity === option.value}
-            onClick={() => setActivity(option.value)}
+            aria-label="自定义"
+            aria-pressed={activity === 'custom'}
+            onClick={() => setActivity('custom')}
           >
-            <span aria-hidden="true">{option.icon}</span> {option.label}
+            ✨ 自定义
           </button>
-        ))}
-        <button
-          type="button"
-          aria-label="自定义"
-          aria-pressed={activity === 'custom'}
-          onClick={() => setActivity('custom')}
-        >
-          ✨ 自定义
-        </button>
+        </div>
         {errors.activity && <p role="alert">{errors.activity}</p>}
       </fieldset>
 

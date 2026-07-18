@@ -57,7 +57,7 @@ export function AvailabilityEditor({
   }
 
   return (
-    <form onSubmit={save}>
+    <form className="inline-form" onSubmit={save}>
       <fieldset>
         <legend>我的空闲时段</legend>
         {periodOptions.map((option) => (

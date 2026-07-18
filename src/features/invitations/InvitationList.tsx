@@ -24,7 +24,7 @@ function InvitationGroup({
   onSelect: (invitation: Invitation) => void;
 }) {
   return (
-    <section aria-label={title}>
+    <section className="schedule-group card" aria-label={title}>
       <h2>{title}</h2>
       {invitations.length === 0 ? (
         <p>暂时没有安排。</p>
@@ -32,7 +32,7 @@ function InvitationGroup({
         <ul>
           {invitations.map((invitation) => (
             <li key={invitation.id}>
-              <button type="button" onClick={() => onSelect(invitation)}>
+              <button className="schedule-card" type="button" onClick={() => onSelect(invitation)}>
                 <strong>{invitation.activity}</strong>
                 <span>
                   {invitation.date} · {periodLabels[invitation.period]}
@@ -90,7 +90,7 @@ export function InvitationList({
     .sort(descending);
 
   return (
-    <div>
+    <div className="schedule-list">
       <InvitationGroup title="待我处理" invitations={needsAction} onSelect={onSelect} />
       <InvitationGroup title="我发起的" invitations={sentByMe} onSelect={onSelect} />
       <InvitationGroup title="已确认" invitations={confirmed} onSelect={onSelect} />

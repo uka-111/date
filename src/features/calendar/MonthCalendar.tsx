@@ -35,8 +35,8 @@ export function MonthCalendar({
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
   return (
-    <section aria-labelledby="calendar-heading">
-      <header>
+    <section className="calendar-card card" aria-labelledby="calendar-heading">
+      <header className="calendar-header">
         <button
           type="button"
           aria-label="上个月"
@@ -54,9 +54,9 @@ export function MonthCalendar({
         </button>
       </header>
 
-      <div role="grid" aria-label="共享月历">
+      <div className="calendar-grid" role="grid" aria-label="共享月历">
         {['一', '二', '三', '四', '五', '六', '日'].map((weekday) => (
-          <span key={weekday}>{weekday}</span>
+          <span className="weekday" key={weekday}>{weekday}</span>
         ))}
         {days.map((day) => {
           const date = format(day, 'yyyy-MM-dd');
@@ -66,6 +66,7 @@ export function MonthCalendar({
           return (
             <button
               type="button"
+              className="calendar-day"
               key={date}
               aria-label={format(day, 'M月d日')}
               aria-selected={selectedDate === date}
@@ -74,7 +75,6 @@ export function MonthCalendar({
               onClick={() => setSelectedDate(date)}
             >
               {format(day, 'd')}
-              {hasAvailability && <span aria-hidden="true">•</span>}
             </button>
           );
         })}

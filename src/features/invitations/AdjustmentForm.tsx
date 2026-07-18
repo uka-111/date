@@ -42,7 +42,7 @@ export function AdjustmentForm({
   }
 
   return (
-    <form onSubmit={submit}>
+    <form className="form-card" onSubmit={submit}>
       <label htmlFor="adjustment-date">调整后的日期</label>
       <input
         id="adjustment-date"

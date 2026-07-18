@@ -25,9 +25,10 @@ export function EntryScreen() {
   }
 
   return (
-    <main>
-      <h1>我们的约会日历</h1>
-      <p>把空闲时间和下一次约会，认真地告诉彼此。</p>
+    <main className="entry-page">
+      <section className="entry-card card">
+        <h1>我们的约会日历</h1>
+        <p>把空闲时间和下一次约会，认真地告诉彼此。</p>
 
       {!unlocked ? (
         <form onSubmit={unlock}>
@@ -43,7 +44,7 @@ export function EntryScreen() {
           <button type="submit">进入我们的日历</button>
         </form>
       ) : (
-        <section aria-labelledby="identity-heading">
+        <section className="identity-choice" aria-labelledby="identity-heading">
           <h2 id="identity-heading">今天是谁在使用？</h2>
           <button type="button" onClick={() => selectPartner('him')}>
             我是他
@@ -54,9 +55,10 @@ export function EntryScreen() {
         </section>
       )}
 
-      <p>
-        本地口令只用于避免误入；正式上线时会升级为安全的双人登录。
-      </p>
+        <p>
+          本地口令只用于避免误入；正式上线时会升级为安全的双人登录。
+        </p>
+      </section>
     </main>
   );
 }

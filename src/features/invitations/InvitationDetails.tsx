@@ -98,7 +98,7 @@ export function InvitationDetails({
     .find((entry) => entry.action === 'adjustment_suggested');
 
   return (
-    <article aria-labelledby={`invitation-${current.id}`}>
+    <article className="invitation-details card" aria-labelledby={`invitation-${current.id}`}>
       <h3 id={`invitation-${current.id}`}>{current.activity}</h3>
       <dl>
         <div>

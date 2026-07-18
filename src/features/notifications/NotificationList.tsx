@@ -27,7 +27,7 @@ export function NotificationList({
   if (visible.length === 0) return <p>暂时没有提醒。</p>;
 
   return (
-    <ul aria-label="提醒列表">
+    <ul className="notification-list" aria-label="提醒列表">
       {visible.map((notification) => (
         <li key={notification.id}>
           <button type="button" onClick={() => onOpen(notification)}>

@@ -35,7 +35,7 @@ export function DayPanel({
   );
 
   return (
-    <section aria-labelledby="selected-day-heading">
+    <section className="day-panel" aria-labelledby="selected-day-heading">
       <h3 id="selected-day-heading">{date} 的安排</h3>
       {dayAvailability.length > 0 ? (
         <ul>

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   BrowserRouter,
   Link,
-  NavLink,
   Route,
   Routes,
   useNavigate,
@@ -12,12 +11,12 @@ import { MonthCalendar } from '../features/calendar/MonthCalendar';
 import { InvitationDetails } from '../features/invitations/InvitationDetails';
 import { InvitationForm } from '../features/invitations/InvitationForm';
 import { InvitationList } from '../features/invitations/InvitationList';
-import { NotificationBell } from '../features/notifications/NotificationBell';
 import { NotificationList } from '../features/notifications/NotificationList';
 import { EntryScreen } from '../features/session/EntryScreen';
 import type { PartnerId } from '../domain/models';
 import { createLocalRepository } from '../storage/localRepository';
 import type { DateBookingRepository } from './repository';
+import { AppShell } from './AppShell';
 import { SessionProvider, useSession } from './SessionProvider';
 
 interface InvitationRouteProps {
@@ -88,22 +87,16 @@ function AuthenticatedApp({ partnerId }: { partnerId: PartnerId }) {
   const refresh = () => setDataVersion((version) => version + 1);
 
   return (
-    <div data-version={dataVersion}>
-      <header>
-        <Link to="/">我们的约会日历</Link>
-        <span>当前身份：{partnerId === 'him' ? '他' : '她'}</span>
-        <NotificationBell
-          partnerId={partnerId}
-          notifications={database.notifications}
-          onClick={() => setShowNotifications((visible) => !visible)}
-        />
-        <button type="button" onClick={signOut}>
-          切换身份
-        </button>
-      </header>
-
+    <AppShell
+      partnerId={partnerId}
+      notifications={database.notifications}
+      onNotificationClick={() =>
+        setShowNotifications((visible) => !visible)
+      }
+      onSignOut={signOut}
+    >
       {showNotifications && (
-        <aside aria-label="提醒">
+        <aside className="notification-panel card" aria-label="提醒">
           <h2>提醒</h2>
           <NotificationList
             partnerId={partnerId}
@@ -123,16 +116,7 @@ function AuthenticatedApp({ partnerId }: { partnerId: PartnerId }) {
           />
         </aside>
       )}
-
-      <nav aria-label="主要导航">
-        <NavLink to="/" end>
-          日历
-        </NavLink>
-        <NavLink to="/invite">发起约会</NavLink>
-        <NavLink to="/invitations">我的安排</NavLink>
-      </nav>
-
-      <main>
+      <div data-version={dataVersion}>
         <Routes>
           <Route
             path="/"
@@ -195,8 +179,8 @@ function AuthenticatedApp({ partnerId }: { partnerId: PartnerId }) {
             }
           />
         </Routes>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
 
