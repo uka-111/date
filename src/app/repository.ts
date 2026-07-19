@@ -1,4 +1,4 @@
-import type { Availability, Invitation, PartnerId } from '../domain/models';
+import type { Availability, CalendarScale, DailyNote, Invitation, PartnerId } from '../domain/models';
 import type {
   LocalDatabase,
   NotificationRecord,
@@ -18,5 +18,9 @@ export interface DateBookingRepository {
     partnerId: PartnerId,
     readAt: string,
   ): void;
+  saveDailyNote(value: DailyNote): void;
+  getDailyNote(date: string): DailyNote | undefined;
+  deleteDailyNote(date: string): void;
+  saveViewPreference(scale: CalendarScale): void;
   reset(): void;
 }

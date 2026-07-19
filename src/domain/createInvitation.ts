@@ -4,7 +4,7 @@ import type { Invitation, PartnerId, Period } from './models';
 interface CreateInvitationInput {
   senderId: PartnerId;
   date: string;
-  period: Period | null;
+  periods: Period[];
   activity: string;
   note: string;
 }
@@ -14,7 +14,8 @@ export function createInvitation(
   now = new Date().toISOString(),
 ): Invitation {
   const activity = input.activity.trim();
-  if (!input.date || !input.period || !activity) {
+  const periods = [...new Set(input.periods)];
+  if (!input.date || periods.length === 0 || !activity) {
     throw new Error('请完整填写日期、时段和活动');
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !isValid(parseISO(input.date))) {
@@ -29,7 +30,7 @@ export function createInvitation(
     senderId: input.senderId,
     recipientId,
     date: input.date,
-    period: input.period,
+    periods,
     activity,
     note: input.note.trim(),
     status: 'pending',

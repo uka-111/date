@@ -1,6 +1,9 @@
 import type { DateBookingRepository } from '../../app/repository';
 import type { Availability, PartnerId, Period } from '../../domain/models';
 import { AvailabilityEditor } from './AvailabilityEditor';
+import { DailyNoteEditor } from '../memories/DailyNoteEditor';
+import { PhotoGallery } from '../memories/PhotoGallery';
+import type { PhotoRepository } from '../../storage/photoRepository';
 
 const periodLabels: Record<Period, string> = {
   all_day: '全天',
@@ -20,6 +23,7 @@ interface DayPanelProps {
   availability: Availability[];
   repository: DateBookingRepository;
   onSaved: () => void;
+  photoRepository?: PhotoRepository;
 }
 
 export function DayPanel({
@@ -28,6 +32,7 @@ export function DayPanel({
   availability,
   repository,
   onSaved,
+  photoRepository,
 }: DayPanelProps) {
   const dayAvailability = availability.filter((value) => value.date === date);
   const ownAvailability = dayAvailability.find(
@@ -53,6 +58,10 @@ export function DayPanel({
         repository={repository}
         onSaved={onSaved}
       />
+      <div className="memory-sections">
+        {photoRepository && <PhotoGallery date={date} repository={photoRepository} onChanged={onSaved} />}
+        <DailyNoteEditor date={date} repository={repository} onSaved={onSaved} />
+      </div>
     </section>
   );
 }

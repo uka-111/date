@@ -2,9 +2,23 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createLocalRepository } from '../../storage/localRepository';
 import { MonthCalendar } from './MonthCalendar';
+import { invitationBuilder } from '../../test/builders';
 
 beforeEach(() => {
   localStorage.clear();
+});
+
+it('shows confirmed fill and both availability markers on the same date', () => {
+  const repository = createLocalRepository(localStorage);
+  repository.saveInvitation(invitationBuilder({ status: 'confirmed' }));
+  repository.saveAvailability({ id: 'him:date', ownerId: 'him', date: '2026-07-25', periods: ['evening'], note: '', updatedAt: '' });
+  repository.saveAvailability({ id: 'her:date', ownerId: 'her', date: '2026-07-25', periods: ['evening'], note: '', updatedAt: '' });
+
+  render(<MonthCalendar initialMonth="2026-07" repository={repository} partnerId="him" />);
+  const day = screen.getByRole('button', { name: '7月25日' });
+  expect(day).toHaveAttribute('data-primary-state', 'confirmed');
+  expect(day).toHaveAttribute('data-secondary-states', expect.stringContaining('him_available'));
+  expect(day).toHaveAttribute('data-secondary-states', expect.stringContaining('her_available'));
 });
 
 it('shows both partners availability on the selected day', async () => {

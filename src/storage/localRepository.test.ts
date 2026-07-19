@@ -9,11 +9,52 @@ it('returns an empty versioned database when storage is empty', () => {
   const repository = createLocalRepository(localStorage);
 
   expect(repository.read()).toEqual({
-    version: 1,
+    version: 2,
     availability: [],
     invitations: [],
     notifications: [],
+    dailyNotes: [],
+    viewPreference: 'month',
   });
+});
+
+it('migrates v1 data on read and persists it once', () => {
+  localStorage.setItem('couple-date-booking', JSON.stringify({
+    version: 1,
+    availability: [],
+    invitations: [{
+      ...invitationBuilder(),
+      periods: undefined,
+      period: 'evening',
+    }],
+    notifications: [],
+  }));
+  const setItem = vi.spyOn(Storage.prototype, 'setItem');
+  const repository = createLocalRepository(localStorage);
+
+  expect(repository.read().invitations[0].periods).toEqual(['evening']);
+  expect(setItem).toHaveBeenCalledTimes(1);
+  repository.read();
+  expect(setItem).toHaveBeenCalledTimes(1);
+  setItem.mockRestore();
+});
+
+it('saves one daily note per date and persists the calendar scale', () => {
+  const repository = createLocalRepository(localStorage);
+  repository.saveDailyNote({
+    date: '2026-07-25',
+    title: '日落',
+    body: '风很舒服',
+    createdAt: '2026-07-25T10:00:00.000Z',
+    updatedAt: '2026-07-25T10:00:00.000Z',
+  });
+  repository.saveViewPreference('year');
+
+  expect(repository.getDailyNote('2026-07-25')?.title).toBe('日落');
+  expect(repository.read().viewPreference).toBe('year');
+
+  repository.deleteDailyNote('2026-07-25');
+  expect(repository.getDailyNote('2026-07-25')).toBeUndefined();
 });
 
 it('keeps two invitations in the same date period', () => {
@@ -81,5 +122,5 @@ it('offers a reset path for invalid stored JSON', () => {
   expect(() => repository.read()).toThrow('本地数据无法读取');
 
   repository.reset();
-  expect(repository.read().version).toBe(1);
+  expect(repository.read().version).toBe(2);
 });
