@@ -210,7 +210,7 @@ function AppContent() {
 export function App() {
   return (
     <SessionProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <AppContent />
       </BrowserRouter>
     </SessionProvider>
