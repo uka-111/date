@@ -8,7 +8,7 @@ export function invitationBuilder(
     senderId: 'him',
     recipientId: 'her',
     date: '2026-07-25',
-    period: 'evening',
+    periods: ['evening'],
     activity: '看电影',
     note: '看新上映的电影',
     status: 'pending',

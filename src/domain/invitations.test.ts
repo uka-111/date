@@ -17,7 +17,7 @@ it('preserves the original proposal when an adjustment is suggested', () => {
   const result = respondToInvitation(invitationBuilder(), 'her', {
     type: 'suggest-adjustment',
     date: '2026-07-26',
-    period: 'afternoon',
+    periods: ['afternoon', 'evening'],
     activity: '逛展',
     note: '下午人少一点',
   });
@@ -31,7 +31,7 @@ it('applies the latest adjustment when the original sender accepts it', () => {
   const adjusted = respondToInvitation(invitationBuilder(), 'her', {
     type: 'suggest-adjustment',
     date: '2026-07-26',
-    period: 'afternoon',
+    periods: ['afternoon', 'evening'],
     activity: '逛展',
   });
 
@@ -41,7 +41,7 @@ it('applies the latest adjustment when the original sender accepts it', () => {
 
   expect(confirmed).toMatchObject({
     date: '2026-07-26',
-    period: 'afternoon',
+    periods: ['afternoon', 'evening'],
     activity: '逛展',
     status: 'confirmed',
   });

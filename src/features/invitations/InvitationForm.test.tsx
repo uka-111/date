@@ -45,7 +45,7 @@ it('saves a preset invitation and recipient notification', async () => {
     senderId: 'him',
     recipientId: 'her',
     date: '2026-07-25',
-    period: 'evening',
+    periods: ['evening'],
     activity: '看电影',
   });
   expect(repository.read().notifications[0]).toMatchObject({
@@ -53,6 +53,19 @@ it('saves a preset invitation and recipient notification', async () => {
     kind: 'created',
   });
   expect(screen.getByText('邀请已经发给她啦')).toBeInTheDocument();
+});
+
+it('allows arbitrary multiple invitation periods', async () => {
+  const user = userEvent.setup();
+  const repository = createLocalRepository(localStorage);
+  render(<InvitationForm partnerId="him" repository={repository} onSaved={vi.fn()} />);
+
+  await user.type(screen.getByLabelText('日期'), '2026-07-25');
+  await user.click(screen.getByLabelText('下午'));
+  await user.click(screen.getByLabelText('晚上'));
+
+  expect(screen.getByLabelText('下午')).toBeChecked();
+  expect(screen.getByLabelText('晚上')).toBeChecked();
 });
 
 it('requires text when custom activity is selected', async () => {

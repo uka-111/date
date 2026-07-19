@@ -33,7 +33,7 @@ export function InvitationForm({
   initialDate = '',
 }: InvitationFormProps) {
   const [date, setDate] = useState(initialDate);
-  const [period, setPeriod] = useState<Period | null>(null);
+  const [selectedPeriods, setSelectedPeriods] = useState<Period[]>([]);
   const [activity, setActivity] = useState('');
   const [customActivity, setCustomActivity] = useState('');
   const [note, setNote] = useState('');
@@ -43,7 +43,7 @@ export function InvitationForm({
   function validate(): FormErrors {
     const nextErrors: FormErrors = {};
     if (!date) nextErrors.date = '日期不能为空';
-    if (!period) nextErrors.period = '时段不能为空';
+    if (selectedPeriods.length === 0) nextErrors.period = '时段不能为空';
     if (!activity) nextErrors.activity = '活动不能为空';
     if (activity === 'custom' && !customActivity.trim()) {
       nextErrors.customActivity = '请填写自定义活动';
@@ -64,7 +64,7 @@ export function InvitationForm({
       const invitation = createInvitation({
         senderId: partnerId,
         date,
-        period,
+        periods: selectedPeriods,
         activity: activity === 'custom' ? customActivity : activity,
         note,
       });
@@ -78,7 +78,7 @@ export function InvitationForm({
       });
       setErrors({});
       setDate('');
-      setPeriod(null);
+      setSelectedPeriods([]);
       setActivity('');
       setCustomActivity('');
       setNote('');
@@ -108,10 +108,14 @@ export function InvitationForm({
         {periods.map((option) => (
           <label key={option.value}>
             <input
-              type="radio"
+              type="checkbox"
               name="invitation-period"
-              checked={period === option.value}
-              onChange={() => setPeriod(option.value)}
+              checked={selectedPeriods.includes(option.value)}
+              onChange={(event) => setSelectedPeriods((current) =>
+                event.target.checked
+                  ? [...current, option.value]
+                  : current.filter((period) => period !== option.value),
+              )}
             />
             {option.label}
           </label>

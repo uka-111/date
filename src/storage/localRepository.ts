@@ -1,5 +1,7 @@
 import type { DateBookingRepository } from '../app/repository';
 import type { Availability, Invitation } from '../domain/models';
+import type { CalendarScale, DailyNote } from '../domain/models';
+import { migrateDatabase } from '../domain/migrations';
 import { emptyDatabase } from './schema';
 import type { LocalDatabase, NotificationRecord } from './schema';
 
@@ -12,11 +14,12 @@ function upsertById<T extends { id: string }>(items: T[], value: T): T[] {
   return items.map((item) => (item.id === value.id ? value : item));
 }
 
-function isDatabase(value: unknown): value is LocalDatabase {
+function isDatabase(value: unknown): value is LocalDatabase | { version: 1; availability: Availability[]; invitations: unknown[]; notifications: NotificationRecord[] } {
   if (!value || typeof value !== 'object') return false;
   const database = value as Partial<LocalDatabase>;
+  const version = (value as { version?: number }).version;
   return (
-    database.version === 1 &&
+    (version === 1 || version === 2) &&
     Array.isArray(database.availability) &&
     Array.isArray(database.invitations) &&
     Array.isArray(database.notifications)
@@ -33,7 +36,9 @@ export function createLocalRepository(
     try {
       const parsed: unknown = JSON.parse(stored);
       if (!isDatabase(parsed)) throw new Error('invalid schema');
-      return parsed;
+      const migrated = migrateDatabase(parsed as Parameters<typeof migrateDatabase>[0]);
+      if ((parsed as { version?: number }).version === 1) write(migrated);
+      return migrated;
     } catch {
       throw new Error('本地数据无法读取');
     }
@@ -95,6 +100,30 @@ export function createLocalRepository(
     });
   }
 
+  function saveDailyNote(value: DailyNote) {
+    const database = read();
+    write({
+      ...database,
+      dailyNotes: database.dailyNotes.some((note) => note.date === value.date)
+        ? database.dailyNotes.map((note) => note.date === value.date ? value : note)
+        : [...database.dailyNotes, value],
+    });
+  }
+
+  function getDailyNote(date: string) {
+    return read().dailyNotes.find((note) => note.date === date);
+  }
+
+  function deleteDailyNote(date: string) {
+    const database = read();
+    write({ ...database, dailyNotes: database.dailyNotes.filter((note) => note.date !== date) });
+  }
+
+  function saveViewPreference(scale: CalendarScale) {
+    const database = read();
+    write({ ...database, viewPreference: scale });
+  }
+
   return {
     read,
     saveAvailability,
@@ -102,6 +131,10 @@ export function createLocalRepository(
     saveNotification,
     saveInvitationWithNotification,
     markNotificationRead,
+    saveDailyNote,
+    getDailyNote,
+    deleteDailyNote,
+    saveViewPreference,
     reset: () => storage.removeItem(STORAGE_KEY),
   };
 }

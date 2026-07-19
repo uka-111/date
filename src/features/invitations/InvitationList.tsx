@@ -35,7 +35,7 @@ function InvitationGroup({
               <button className="schedule-card" type="button" onClick={() => onSelect(invitation)}>
                 <strong>{invitation.activity}</strong>
                 <span>
-                  {invitation.date} · {periodLabels[invitation.period]}
+                  {invitation.date} · {invitation.periods.map((period) => periodLabels[period]).join('、')}
                 </span>
               </button>
             </li>

@@ -13,7 +13,7 @@ export type InvitationResponse =
   | {
       type: 'suggest-adjustment';
       date: string;
-      period: Period;
+      periods: Period[];
       activity: string;
       note?: string;
     }
@@ -84,6 +84,9 @@ export function respondToInvitation(
   response: InvitationResponse,
   now = new Date().toISOString(),
 ): Invitation {
+  if (response.type === 'suggest-adjustment' && response.periods.length === 0) {
+    throw new Error('请至少选择一个时段');
+  }
   assertTransitionAllowed(invitation, actorId, response);
 
   const { action, status } = responseResult(response);
@@ -97,7 +100,7 @@ export function respondToInvitation(
   if (
     response.type === 'accept-adjustment' &&
     (!acceptedAdjustment?.proposedDate ||
-      !acceptedAdjustment.proposedPeriod ||
+      !acceptedAdjustment.proposedPeriods?.length ||
       !acceptedAdjustment.proposedActivity)
   ) {
     throw new Error('没有可以接受的调整建议');
@@ -106,7 +109,7 @@ export function respondToInvitation(
   return {
     ...invitation,
     date: acceptedAdjustment?.proposedDate ?? invitation.date,
-    period: acceptedAdjustment?.proposedPeriod ?? invitation.period,
+    periods: acceptedAdjustment?.proposedPeriods ?? invitation.periods,
     activity: acceptedAdjustment?.proposedActivity ?? invitation.activity,
     status,
     updatedAt: now,
@@ -120,8 +123,8 @@ export function respondToInvitation(
         note: 'note' in response ? response.note : undefined,
         proposedDate:
           response.type === 'suggest-adjustment' ? response.date : undefined,
-        proposedPeriod:
-          response.type === 'suggest-adjustment' ? response.period : undefined,
+        proposedPeriods:
+          response.type === 'suggest-adjustment' ? [...new Set(response.periods)] : undefined,
         proposedActivity:
           response.type === 'suggest-adjustment'
             ? response.activity.trim()

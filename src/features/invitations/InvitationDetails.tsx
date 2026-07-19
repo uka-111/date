@@ -111,7 +111,7 @@ export function InvitationDetails({
         </div>
         <div>
           <dt>时段</dt>
-          <dd>{periodLabels[current.period]}</dd>
+          <dd>{current.periods.map((period) => periodLabels[period]).join('、')}</dd>
         </div>
         <div>
           <dt>状态</dt>
@@ -125,9 +125,8 @@ export function InvitationDetails({
           <h4>最新调整建议</h4>
           <p>
             {latestAdjustment.proposedDate} ·{' '}
-            {latestAdjustment.proposedPeriod
-              ? periodLabels[latestAdjustment.proposedPeriod]
-              : ''}{' '}
+            {latestAdjustment.proposedPeriods
+              ?.map((period) => periodLabels[period]).join('、') ?? ''}{' '}
             · {latestAdjustment.proposedActivity}
           </p>
           {latestAdjustment.note && <p>{latestAdjustment.note}</p>}

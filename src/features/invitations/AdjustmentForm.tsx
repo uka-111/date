@@ -3,7 +3,7 @@ import type { Invitation, Period } from '../../domain/models';
 
 interface AdjustmentValue {
   date: string;
-  period: Period;
+  periods: Period[];
   activity: string;
   note: string;
 }
@@ -27,18 +27,18 @@ export function AdjustmentForm({
   onCancel,
 }: AdjustmentFormProps) {
   const [date, setDate] = useState(invitation.date);
-  const [period, setPeriod] = useState<Period>(invitation.period);
+  const [selectedPeriods, setSelectedPeriods] = useState<Period[]>(invitation.periods);
   const [activity, setActivity] = useState(invitation.activity);
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!date || !activity.trim()) {
-      setError('请填写调整后的日期和活动');
+    if (!date || selectedPeriods.length === 0 || !activity.trim()) {
+      setError('请填写调整后的日期、时段和活动');
       return;
     }
-    onSubmit({ date, period, activity: activity.trim(), note: note.trim() });
+    onSubmit({ date, periods: selectedPeriods, activity: activity.trim(), note: note.trim() });
   }
 
   return (
@@ -56,11 +56,15 @@ export function AdjustmentForm({
         {periodOptions.map((option) => (
           <label key={option.value}>
             <input
-              type="radio"
+              type="checkbox"
               name="adjustment-period"
               aria-label={`调整为${option.label}`}
-              checked={period === option.value}
-              onChange={() => setPeriod(option.value)}
+              checked={selectedPeriods.includes(option.value)}
+              onChange={(event) => setSelectedPeriods((current) =>
+                event.target.checked
+                  ? [...current, option.value]
+                  : current.filter((period) => period !== option.value),
+              )}
             />
             {option.label}
           </label>

@@ -1,4 +1,4 @@
-import type { Availability, Invitation, PartnerId } from '../domain/models';
+import type { Availability, CalendarScale, DailyNote, Invitation, PartnerId } from '../domain/models';
 
 export type NotificationKind =
   | 'created'
@@ -17,17 +17,21 @@ export interface NotificationRecord {
 }
 
 export interface LocalDatabase {
-  version: 1;
+  version: 2;
   availability: Availability[];
   invitations: Invitation[];
   notifications: NotificationRecord[];
+  dailyNotes: DailyNote[];
+  viewPreference: CalendarScale;
 }
 
 export function emptyDatabase(): LocalDatabase {
   return {
-    version: 1,
+    version: 2,
     availability: [],
     invitations: [],
     notifications: [],
+    dailyNotes: [],
+    viewPreference: 'month',
   };
 }

@@ -33,7 +33,7 @@ export interface InvitationHistoryEntry {
   createdAt: string;
   note?: string;
   proposedDate?: string;
-  proposedPeriod?: Period;
+  proposedPeriods?: Period[];
   proposedActivity?: string;
 }
 
@@ -42,11 +42,21 @@ export interface Invitation {
   senderId: PartnerId;
   recipientId: PartnerId;
   date: string;
-  period: Period;
+  periods: Period[];
   activity: string;
   note: string;
   status: InvitationStatus;
   createdAt: string;
   updatedAt: string;
   history: InvitationHistoryEntry[];
+}
+
+export type CalendarScale = 'month' | 'year' | 'five_years';
+
+export interface DailyNote {
+  date: string;
+  title: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
 }

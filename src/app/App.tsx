@@ -7,7 +7,8 @@ import {
   useNavigate,
   useParams,
 } from 'react-router-dom';
-import { MonthCalendar } from '../features/calendar/MonthCalendar';
+import { CalendarWorkspace } from '../features/calendar/CalendarWorkspace';
+import { createPhotoRepository } from '../storage/photoRepository';
 import { InvitationDetails } from '../features/invitations/InvitationDetails';
 import { InvitationForm } from '../features/invitations/InvitationForm';
 import { InvitationList } from '../features/invitations/InvitationList';
@@ -82,6 +83,7 @@ function AuthenticatedApp({ partnerId }: { partnerId: PartnerId }) {
     () => createLocalRepository(window.localStorage),
     [],
   );
+  const photoRepository = useMemo(() => createPhotoRepository(), []);
   const [dataVersion, setDataVersion] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const refresh = () => setDataVersion((version) => version + 1);
@@ -135,10 +137,11 @@ function AuthenticatedApp({ partnerId }: { partnerId: PartnerId }) {
           <Route
             path="/"
             element={
-              <MonthCalendar
+              <CalendarWorkspace
                 key={dataVersion}
                 repository={repository}
                 partnerId={partnerId}
+                photoRepository={photoRepository}
               />
             }
           />

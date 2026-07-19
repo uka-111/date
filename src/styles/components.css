@@ -211,6 +211,88 @@
   color: var(--coral-dark);
 }
 
+.calendar-workspace > .scale-control { margin-bottom: 14px; }
+.scale-control { display: inline-grid; grid-template-columns: repeat(3, 1fr); padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.scale-control button { min-width: 58px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); padding: 8px 12px; cursor: pointer; }
+.scale-control button[aria-pressed="true"] { background: var(--coral); color: white; }
+
+.year-calendar { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.compact-month { padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.compact-month h3 { margin: 0 0 8px; font-size: 1rem; }
+.compact-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.compact-grid button { aspect-ratio: 1; min-width: 0; border: 0; border-radius: 4px; background: transparent; color: var(--cocoa); font-size: 0.72rem; cursor: pointer; }
+.compact-grid button[data-primary-state="confirmed"] { background: var(--confirmed-fill); }
+
+.five-year-calendar { display: grid; gap: 12px; }
+.year-density { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.year-density h3 { margin: 0; }
+.year-density > div { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.year-density button { position: relative; min-height: 48px; border: 1px solid var(--border); border-radius: 6px; background: color-mix(in srgb, var(--confirmed-fill) calc(var(--density) * 100%), white); color: var(--cocoa); cursor: pointer; }
+.year-density small { position: absolute; top: 2px; right: 4px; color: var(--memory-mark); }
+
+.memory-sections { display: grid; gap: 18px; margin-top: 22px; }
+.photo-gallery, .daily-note { padding-top: 16px; border-top: 1px solid var(--border); }
+.memory-header { display: flex; align-items: center; justify-content: space-between; }
+.photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.photo-grid figure { margin: 0; }
+.photo-grid img { width: 100%; aspect-ratio: 1; border-radius: 6px; object-fit: cover; }
+.photo-open { width: 100%; border: 0; background: transparent; padding: 0; cursor: pointer; }
+.photo-viewer { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(32, 26, 25, 0.86); color: white; }
+.photo-viewer img { max-width: min(92vw, 960px); max-height: 78vh; object-fit: contain; }
+.photo-viewer > button { justify-self: end; border: 1px solid white; background: transparent; color: white; padding: 8px 12px; cursor: pointer; }
+.upload-button { display: inline-flex; margin-top: 10px; cursor: pointer; }
+.upload-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.daily-note { display: grid; gap: 8px; }
+
+.calendar-day[data-primary-state="confirmed"] {
+  background: var(--confirmed-fill);
+  color: var(--cocoa);
+  box-shadow: inset 0 0 0 2px rgba(201, 93, 76, 0.18);
+}
+
+.calendar-markers {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  left: 6px;
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+.marker {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--memory-mark);
+}
+
+.marker-him_available { background: var(--him-available); }
+.marker-her_available { background: var(--her-available); }
+.marker-needs_my_response { background: var(--pending-gold); }
+.marker-waiting_for_partner { background: var(--waiting-gold); }
+.marker-note { border-radius: 1px; background: var(--memory-mark); }
+.marker-photo { border: 1px solid var(--memory-mark); background: transparent; }
+
+.status-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.status-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend-swatch { width: 13px; height: 13px; border-radius: 4px; }
+.legend-confirmed { background: var(--confirmed-fill); }
+.legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+.legend-him { background: var(--him-available); }
+.legend-her { background: var(--her-available); }
+.legend-needs { background: var(--pending-gold); }
+.legend-waiting { background: var(--waiting-gold); }
+.legend-symbol { color: var(--memory-mark); font-style: normal; }
+
 .calendar-day:disabled {
   color: #cbbab5;
   cursor: default;
@@ -438,4 +520,6 @@ fieldset label {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
   }
+  .year-density > div { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .memory-sections { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
