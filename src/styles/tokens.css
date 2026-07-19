@@ -1,0 +1,28 @@
+:root {
+  color-scheme: light;
+  --cream: #fff8f1;
+  --cream-deep: #f9ede2;
+  --surface: #ffffff;
+  --surface-soft: #fffdf9;
+  --coral: #e97865;
+  --coral-dark: #c95d4c;
+  --blush: #f7c8c2;
+  --blush-soft: #fde8e4;
+  --cocoa: #493936;
+  --muted: #7d6b67;
+  --success: #3c8a68;
+  --warning: #c7802d;
+  --error: #b44545;
+  --confirmed-fill: #f5c5bb;
+  --him-available: #3c9b8b;
+  --her-available: #b47aa7;
+  --pending-gold: #d49a3a;
+  --waiting-gold: #e7c984;
+  --memory-mark: #6c8198;
+  --border: #efdcd5;
+  --shadow: 0 18px 48px rgba(103, 66, 55, 0.1);
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --content-width: 1120px;
+}
