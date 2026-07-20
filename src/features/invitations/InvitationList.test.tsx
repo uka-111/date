@@ -57,6 +57,8 @@ it('shows multiple activities as individual tags', () => {
           senderId: 'her',
           recipientId: 'him',
           activity: ['看电影', '一起吃饭'],
+          date: '2026-07-25',
+          periods: ['evening'],
         }),
       ]}
       today="2026-07-18"
@@ -69,4 +71,7 @@ it('shows multiple activities as individual tags', () => {
   expect(tags).toHaveLength(2);
   expect(tags[0]).toHaveTextContent('看电影');
   expect(tags[1]).toHaveTextContent('一起吃饭');
+  expect(
+    screen.getByRole('button', { name: /看电影、一起吃饭.*2026-07-25/ }),
+  ).toBeInTheDocument();
 });

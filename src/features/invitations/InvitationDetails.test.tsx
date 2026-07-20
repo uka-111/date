@@ -132,7 +132,7 @@ it('suggests multiple activities without replacing the original and applies them
     '一起吃饭',
   ]);
   const headingTags = screen
-    .getByRole('heading', { level: 3 })
+    .getByRole('heading', { name: '看电影、一起吃饭', level: 3 })
     .querySelectorAll('.activity-tag');
   expect(headingTags).toHaveLength(2);
   expect(headingTags[0]).toHaveTextContent('看电影');

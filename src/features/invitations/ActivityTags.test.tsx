@@ -8,6 +8,10 @@ it('renders each activity as a readable tag in its original order', () => {
 
   const tags = container.querySelectorAll('.activity-tags .activity-tag');
 
+  expect(container.querySelector('.activity-tags')).toHaveAttribute(
+    'aria-label',
+    '一起吃饭、看电影',
+  );
   expect(container.querySelector('.activity-tags')).not.toHaveAttribute(
     'aria-hidden',
     'true',

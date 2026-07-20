@@ -475,7 +475,7 @@ fieldset label {
   gap: 12px;
 }
 
-.schedule-card span {
+.schedule-card > span {
   color: var(--muted);
 }
 
