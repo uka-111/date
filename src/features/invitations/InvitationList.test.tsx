@@ -47,3 +47,22 @@ it('treats an adjustment as waiting for the original sender', () => {
     within(screen.getByLabelText('待我处理')).getByText('看电影'),
   ).toBeInTheDocument();
 });
+
+it('shows multiple activities with a visible separator', () => {
+  render(
+    <InvitationList
+      partnerId="him"
+      invitations={[
+        invitationBuilder({
+          senderId: 'her',
+          recipientId: 'him',
+          activity: ['看电影', '一起吃饭'],
+        }),
+      ]}
+      today="2026-07-18"
+      onSelect={vi.fn()}
+    />,
+  );
+
+  expect(screen.getByText('看电影、一起吃饭')).toBeInTheDocument();
+});

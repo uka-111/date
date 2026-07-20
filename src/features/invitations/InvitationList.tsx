@@ -32,10 +32,17 @@ function InvitationGroup({
         <ul>
           {invitations.map((invitation) => (
             <li key={invitation.id}>
-              <button className="schedule-card" type="button" onClick={() => onSelect(invitation)}>
-                <strong>{invitation.activity}</strong>
+              <button
+                className="schedule-card"
+                type="button"
+                onClick={() => onSelect(invitation)}
+              >
+                <strong>{invitation.activity.join('、')}</strong>
                 <span>
-                  {invitation.date} · {invitation.periods.map((period) => periodLabels[period]).join('、')}
+                  {invitation.date} ·{' '}
+                  {invitation.periods
+                    .map((period) => periodLabels[period])
+                    .join('、')}
                 </span>
               </button>
             </li>

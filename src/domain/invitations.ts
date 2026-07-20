@@ -14,7 +14,7 @@ export type InvitationResponse =
       type: 'suggest-adjustment';
       date: string;
       periods: Period[];
-      activity: string;
+      activity: string[];
       note?: string;
     }
   | { type: 'accept-adjustment' };
@@ -87,6 +87,20 @@ export function respondToInvitation(
   if (response.type === 'suggest-adjustment' && response.periods.length === 0) {
     throw new Error('请至少选择一个时段');
   }
+  const normalizedActivities =
+    response.type === 'suggest-adjustment'
+      ? [
+          ...new Set(
+            response.activity.map((activity) => activity.trim()).filter(Boolean),
+          ),
+        ]
+      : undefined;
+  if (
+    response.type === 'suggest-adjustment' &&
+    normalizedActivities?.length === 0
+  ) {
+    throw new Error('请至少选择一个活动');
+  }
   assertTransitionAllowed(invitation, actorId, response);
 
   const { action, status } = responseResult(response);
@@ -125,10 +139,9 @@ export function respondToInvitation(
           response.type === 'suggest-adjustment' ? response.date : undefined,
         proposedPeriods:
           response.type === 'suggest-adjustment' ? [...new Set(response.periods)] : undefined,
-        proposedActivity:
-          response.type === 'suggest-adjustment'
-            ? [response.activity.trim()]
-            : undefined,
+        proposedActivity: normalizedActivities
+          ? [...normalizedActivities]
+          : undefined,
       },
     ],
   };
