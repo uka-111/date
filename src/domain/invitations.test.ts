@@ -42,7 +42,7 @@ it('applies the latest adjustment when the original sender accepts it', () => {
   expect(confirmed).toMatchObject({
     date: '2026-07-26',
     periods: ['afternoon', 'evening'],
-    activity: '逛展',
+    activity: ['逛展'],
     status: 'confirmed',
   });
 });

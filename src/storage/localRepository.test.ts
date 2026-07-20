@@ -9,7 +9,7 @@ it('returns an empty versioned database when storage is empty', () => {
   const repository = createLocalRepository(localStorage);
 
   expect(repository.read()).toEqual({
-    version: 2,
+    version: 3,
     availability: [],
     invitations: [],
     notifications: [],
@@ -26,6 +26,7 @@ it('migrates v1 data on read and persists it once', () => {
       ...invitationBuilder(),
       periods: undefined,
       period: 'evening',
+      activity: '看电影',
     }],
     notifications: [],
   }));
@@ -122,5 +123,5 @@ it('offers a reset path for invalid stored JSON', () => {
   expect(() => repository.read()).toThrow('本地数据无法读取');
 
   repository.reset();
-  expect(repository.read().version).toBe(2);
+  expect(repository.read().version).toBe(3);
 });

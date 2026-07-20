@@ -31,7 +31,7 @@ export function createInvitation(
     recipientId,
     date: input.date,
     periods,
-    activity,
+    activity: [activity],
     note: input.note.trim(),
     status: 'pending',
     createdAt: now,

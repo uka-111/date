@@ -28,7 +28,7 @@ export function AdjustmentForm({
 }: AdjustmentFormProps) {
   const [date, setDate] = useState(invitation.date);
   const [selectedPeriods, setSelectedPeriods] = useState<Period[]>(invitation.periods);
-  const [activity, setActivity] = useState(invitation.activity);
+  const [activity, setActivity] = useState(invitation.activity[0] ?? '');
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
 

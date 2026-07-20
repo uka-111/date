@@ -46,7 +46,7 @@ it('saves a preset invitation and recipient notification', async () => {
     recipientId: 'her',
     date: '2026-07-25',
     periods: ['evening'],
-    activity: '看电影',
+    activity: ['看电影'],
   });
   expect(repository.read().notifications[0]).toMatchObject({
     recipientId: 'her',

@@ -101,7 +101,7 @@ export function respondToInvitation(
     response.type === 'accept-adjustment' &&
     (!acceptedAdjustment?.proposedDate ||
       !acceptedAdjustment.proposedPeriods?.length ||
-      !acceptedAdjustment.proposedActivity)
+      !acceptedAdjustment.proposedActivity?.length)
   ) {
     throw new Error('没有可以接受的调整建议');
   }
@@ -127,7 +127,7 @@ export function respondToInvitation(
           response.type === 'suggest-adjustment' ? [...new Set(response.periods)] : undefined,
         proposedActivity:
           response.type === 'suggest-adjustment'
-            ? response.activity.trim()
+            ? [response.activity.trim()]
             : undefined,
       },
     ],
