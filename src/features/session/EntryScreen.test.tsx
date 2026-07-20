@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from '../../app/App';
 
@@ -30,6 +30,23 @@ it('requires the shared passphrase before identity selection', async () => {
   expect(
     screen.queryByRole('button', { name: '我是她' }),
   ).not.toBeInTheDocument();
+});
+
+it('renders two identity cards inside a dedicated options group', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+
+  await user.type(screen.getByLabelText('专属口令'), '2021121');
+  await user.click(screen.getByRole('button', { name: '进入我们的日历' }));
+
+  const group = screen.getByRole('group', { name: '今天是谁在使用？' });
+  expect(within(group).getAllByRole('button')).toHaveLength(2);
+  expect(within(group).getByRole('button', { name: '我是他' })).toHaveClass(
+    'identity-option',
+  );
+  expect(within(group).getByRole('button', { name: '我是她' })).toHaveClass(
+    'identity-option',
+  );
 });
 
 it('remembers the selected partner in session storage', async () => {

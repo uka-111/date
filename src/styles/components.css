@@ -127,8 +127,7 @@
   line-height: 1.15;
 }
 
-.entry-card form,
-.identity-choice {
+.entry-card form {
   display: grid;
   gap: 12px;
   margin: 28px 0 18px;
@@ -149,8 +148,27 @@
 }
 
 .identity-choice {
-  grid-template-columns: 1fr 1fr;
+  display: block;
+  margin: 28px 0 18px;
   text-align: center;
+}
+
+.identity-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.entry-card .identity-option {
+  display: grid;
+  width: 100%;
+  min-height: 92px;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
 }
 
 .calendar-card,
@@ -557,4 +575,10 @@ fieldset label {
   }
   .year-density > div { grid-template-columns: repeat(12, minmax(0, 1fr)); }
   .memory-sections { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 360px) {
+  .identity-options {
+    grid-template-columns: 1fr;
+  }
 }

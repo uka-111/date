@@ -46,12 +46,28 @@ export function EntryScreen() {
       ) : (
         <section className="identity-choice" aria-labelledby="identity-heading">
           <h2 id="identity-heading">今天是谁在使用？</h2>
-          <button type="button" onClick={() => selectPartner('him')}>
-            我是他
-          </button>
-          <button type="button" onClick={() => selectPartner('her')}>
-            我是她
-          </button>
+          <div
+            className="identity-options"
+            role="group"
+            aria-labelledby="identity-heading"
+          >
+            <button
+              className="identity-option"
+              type="button"
+              onClick={() => selectPartner('him')}
+            >
+              <span aria-hidden="true">☀️</span>
+              <span>我是他</span>
+            </button>
+            <button
+              className="identity-option"
+              type="button"
+              onClick={() => selectPartner('her')}
+            >
+              <span aria-hidden="true">🌙</span>
+              <span>我是她</span>
+            </button>
+          </div>
         </section>
       )}
 

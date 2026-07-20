@@ -5,7 +5,20 @@ test('both partners can complete a date invitation', async ({ page }) => {
 
   await page.getByLabel('专属口令').fill('2021121');
   await page.getByRole('button', { name: '进入我们的日历' }).click();
-  await page.getByRole('button', { name: '我是他' }).click();
+  const himIdentityButton = page.getByRole('button', { name: '我是他' });
+  const herIdentityButton = page.getByRole('button', { name: '我是她' });
+  const [himIdentityBox, herIdentityBox] = await Promise.all([
+    himIdentityButton.boundingBox(),
+    herIdentityButton.boundingBox(),
+  ]);
+
+  if (!himIdentityBox || !herIdentityBox) {
+    throw new Error('Identity options must be visible after unlocking.');
+  }
+
+  expect(Math.abs(himIdentityBox.width - herIdentityBox.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(himIdentityBox.height - herIdentityBox.height)).toBeLessThanOrEqual(1);
+  await himIdentityButton.click();
 
   await expect(page.getByRole('grid', { name: '共享月历' })).toBeVisible();
   await page.getByRole('link', { name: '发起约会' }).click();
@@ -40,6 +53,22 @@ test('both partners can complete a date invitation', async ({ page }) => {
 test('mobile layout does not overflow horizontally', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
+
+  await page.getByLabel('专属口令').fill('2021121');
+  await page.getByRole('button', { name: '进入我们的日历' }).click();
+  const himIdentityButton = page.getByRole('button', { name: '我是他' });
+  const herIdentityButton = page.getByRole('button', { name: '我是她' });
+  const [himIdentityBox, herIdentityBox] = await Promise.all([
+    himIdentityButton.boundingBox(),
+    herIdentityButton.boundingBox(),
+  ]);
+
+  if (!himIdentityBox || !herIdentityBox) {
+    throw new Error('Identity options must be visible after unlocking.');
+  }
+
+  expect(Math.abs(himIdentityBox.y - herIdentityBox.y)).toBeLessThanOrEqual(1);
+  expect(himIdentityBox.x).not.toBe(herIdentityBox.x);
 
   const dimensions = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
