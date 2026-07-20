@@ -72,6 +72,8 @@ it('shows multiple activities as individual tags', () => {
   expect(tags[0]).toHaveTextContent('看电影');
   expect(tags[1]).toHaveTextContent('一起吃饭');
   expect(
-    screen.getByRole('button', { name: /看电影、一起吃饭.*2026-07-25/ }),
+    screen.getByRole('button', {
+      name: '看电影、一起吃饭，2026-07-25 · 晚上',
+    }),
   ).toBeInTheDocument();
 });

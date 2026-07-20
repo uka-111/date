@@ -41,7 +41,8 @@ function InvitationGroup({
                 <strong>
                   <ActivityTags activities={invitation.activity} />
                 </strong>
-                <span>
+                <span className="visually-hidden">，</span>
+                <span className="schedule-meta">
                   {invitation.date} ·{' '}
                   {invitation.periods
                     .map((period) => periodLabels[period])

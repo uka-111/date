@@ -115,6 +115,7 @@ it('suggests multiple activities without replacing the original and applies them
   expect(adjustmentTags).toHaveLength(2);
   expect(adjustmentTags[0]).toHaveTextContent('看电影');
   expect(adjustmentTags[1]).toHaveTextContent('一起吃饭');
+  expect(latestAdjustment).toHaveTextContent('看电影、一起吃饭');
 
   recipientView.unmount();
   render(
@@ -131,9 +132,12 @@ it('suggests multiple activities without replacing the original and applies them
     '看电影',
     '一起吃饭',
   ]);
-  const headingTags = screen
-    .getByRole('heading', { name: '看电影、一起吃饭', level: 3 })
-    .querySelectorAll('.activity-tag');
+  const heading = screen.getByRole('heading', {
+    name: '看电影、一起吃饭',
+    level: 3,
+  });
+  expect(heading).toHaveTextContent('看电影、一起吃饭');
+  const headingTags = heading.querySelectorAll('.activity-tag');
   expect(headingTags).toHaveLength(2);
   expect(headingTags[0]).toHaveTextContent('看电影');
   expect(headingTags[1]).toHaveTextContent('一起吃饭');

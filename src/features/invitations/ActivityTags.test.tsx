@@ -8,13 +8,16 @@ it('renders each activity as a readable tag in its original order', () => {
 
   const tags = container.querySelectorAll('.activity-tags .activity-tag');
 
-  expect(container.querySelector('.activity-tags')).toHaveAttribute(
+  expect(container.querySelector('.activity-tags')).not.toHaveAttribute(
     'aria-label',
-    '一起吃饭、看电影',
   );
   expect(container.querySelector('.activity-tags')).not.toHaveAttribute(
     'aria-hidden',
     'true',
+  );
+  expect(container.querySelectorAll('.visually-hidden')).toHaveLength(1);
+  expect(container.querySelector('.activity-tags')).toHaveTextContent(
+    '一起吃饭、看电影',
   );
   expect(tags).toHaveLength(2);
   expect(tags[0]).toHaveTextContent('一起吃饭');
