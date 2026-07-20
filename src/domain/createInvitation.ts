@@ -5,7 +5,7 @@ interface CreateInvitationInput {
   senderId: PartnerId;
   date: string;
   periods: Period[];
-  activity: string;
+  activity: string[];
   note: string;
 }
 
@@ -13,9 +13,9 @@ export function createInvitation(
   input: CreateInvitationInput,
   now = new Date().toISOString(),
 ): Invitation {
-  const activity = input.activity.trim();
+  const activity = [...new Set(input.activity.map((activity) => activity.trim()).filter(Boolean))];
   const periods = [...new Set(input.periods)];
-  if (!input.date || periods.length === 0 || !activity) {
+  if (!input.date || periods.length === 0 || activity.length === 0) {
     throw new Error('请完整填写日期、时段和活动');
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !isValid(parseISO(input.date))) {
@@ -31,7 +31,7 @@ export function createInvitation(
     recipientId,
     date: input.date,
     periods,
-    activity: [activity],
+    activity,
     note: input.note.trim(),
     status: 'pending',
     createdAt: now,

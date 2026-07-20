@@ -65,7 +65,7 @@ export function InvitationForm({
         senderId: partnerId,
         date,
         periods: selectedPeriods,
-        activity: activity === 'custom' ? customActivity : activity,
+        activity: [activity === 'custom' ? customActivity : activity],
         note,
       });
       repository.saveInvitationWithNotification(invitation, {
