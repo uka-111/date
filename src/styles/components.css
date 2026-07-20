@@ -440,7 +440,7 @@ fieldset label {
 .activity-option[aria-pressed="true"],
 .form-card button[type="submit"],
 .inline-form button[type="submit"],
-.invitation-details button:first-of-type {
+.invitation-details .primary-action {
   border-color: var(--coral);
   background: var(--coral);
   color: white;

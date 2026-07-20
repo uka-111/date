@@ -38,6 +38,33 @@ test('both partners can complete a date invitation', async ({ page }) => {
   await page.getByLabel('1 条未读提醒').click();
   await page.getByRole('button', { name: /新的约会邀请/ }).click();
   await expect(page.getByRole('heading', { name: '看电影' })).toBeVisible();
+  await page.getByRole('button', { name: '建议调整' }).click();
+
+  const selectedActivity = page.getByRole('button', { name: '看电影' });
+  const unselectedActivity = page.getByRole('button', { name: '一起吃饭' });
+  await expect(selectedActivity).toHaveAttribute('aria-pressed', 'true');
+  await expect(unselectedActivity).toHaveAttribute('aria-pressed', 'false');
+
+  const selectedStyle = await selectedActivity.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { backgroundColor: style.backgroundColor, color: style.color };
+  });
+  const unselectedStyle = await unselectedActivity.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { backgroundColor: style.backgroundColor, color: style.color };
+  });
+  expect(unselectedStyle.backgroundColor).not.toBe(selectedStyle.backgroundColor);
+  expect(unselectedStyle.color).not.toBe(selectedStyle.color);
+
+  await unselectedActivity.click();
+  await expect(unselectedActivity).toHaveAttribute('aria-pressed', 'true');
+  const newlySelectedStyle = await unselectedActivity.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { backgroundColor: style.backgroundColor, color: style.color };
+  });
+  expect(newlySelectedStyle).toEqual(selectedStyle);
+
+  await page.getByRole('button', { name: '返回' }).click();
   await page.getByRole('button', { name: '确认约会' }).click();
 
   await expect(page.getByText('已确认', { exact: true })).toBeVisible();

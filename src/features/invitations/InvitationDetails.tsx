@@ -165,7 +165,11 @@ export function InvitationDetails({
 
       {!showAdjustment && current.status === 'pending' && isRecipient && (
         <div>
-          <button type="button" onClick={() => applyResponse({ type: 'confirm' })}>
+          <button
+            className="primary-action"
+            type="button"
+            onClick={() => applyResponse({ type: 'confirm' })}
+          >
             确认约会
           </button>
           <button type="button" onClick={() => setConfirmation('reject')}>
@@ -189,6 +193,7 @@ export function InvitationDetails({
 
       {current.status === 'adjustment_pending' && isSender && (
         <button
+          className="primary-action"
           type="button"
           onClick={() => applyResponse({ type: 'accept-adjustment' })}
         >
@@ -214,6 +219,7 @@ export function InvitationDetails({
               : '确认取消这个约会吗？'}
           </h4>
           <button
+            className="primary-action"
             type="button"
             onClick={() =>
               applyResponse({
