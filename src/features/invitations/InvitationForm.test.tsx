@@ -118,6 +118,22 @@ it('saves selected presets together with a custom activity', async () => {
   expect(repository.read().invitations[0]?.activity).toStrictEqual(['看电影', '逛展']);
 });
 
+it('does not save custom activity text after custom selection is cancelled', async () => {
+  const repository = createLocalRepository(localStorage);
+  const user = userEvent.setup();
+  render(<InvitationForm partnerId="him" repository={repository} onSaved={vi.fn()} />);
+
+  await user.type(screen.getByLabelText('日期'), '2026-07-25');
+  await user.click(screen.getByLabelText('晚上'));
+  await user.click(screen.getByRole('button', { name: '看电影' }));
+  await user.click(screen.getByRole('button', { name: '自定义' }));
+  await user.type(screen.getByLabelText('自定义活动'), '逛展');
+  await user.click(screen.getByRole('button', { name: '自定义' }));
+  await user.click(screen.getByRole('button', { name: '发送约会邀请' }));
+
+  expect(repository.read().invitations[0]?.activity).toStrictEqual(['看电影']);
+});
+
 it('validates empty custom activity and empty activity selection', async () => {
   const user = userEvent.setup();
   render(

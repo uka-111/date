@@ -70,7 +70,7 @@ export function InvitationForm({
         periods: selectedPeriods,
         activity: [
           ...selectedActivities,
-          ...(customActivity.trim() ? [customActivity.trim()] : []),
+          ...(customSelected && customActivity.trim() ? [customActivity.trim()] : []),
         ],
         note,
       });
