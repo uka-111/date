@@ -110,7 +110,7 @@ export function respondToInvitation(
     ...invitation,
     date: acceptedAdjustment?.proposedDate ?? invitation.date,
     periods: acceptedAdjustment?.proposedPeriods ?? invitation.periods,
-    activity: acceptedAdjustment?.proposedActivity ?? invitation.activity,
+    activity: [...(acceptedAdjustment?.proposedActivity ?? invitation.activity)],
     status,
     updatedAt: now,
     history: [

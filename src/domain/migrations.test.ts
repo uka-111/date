@@ -8,7 +8,11 @@ it('migrates a v1 period and activity without changing the invitation identity',
       id: 'old', senderId: 'him', recipientId: 'her', date: '2026-07-25',
       period: 'evening', activity: '看电影', note: '', status: 'pending',
       createdAt: '2026-07-18T10:00:00.000Z', updatedAt: '2026-07-18T10:00:00.000Z',
-      history: [{ id: 'h', actorId: 'him', action: 'created', createdAt: '2026-07-18T10:00:00.000Z' }],
+      history: [{
+        id: 'h', actorId: 'him', action: 'adjustment_suggested',
+        createdAt: '2026-07-18T10:00:00.000Z',
+        proposedPeriod: 'morning', proposedActivity: '散步',
+      }],
     }],
     notifications: [],
   });
@@ -18,6 +22,8 @@ it('migrates a v1 period and activity without changing the invitation identity',
   expect(migrated.invitations[0].activity).toEqual(['看电影']);
   expect(migrated.invitations[0].id).toBe('old');
   expect(migrated.invitations[0].history[0].id).toBe('h');
+  expect(migrated.invitations[0].history[0].proposedPeriods).toEqual(['morning']);
+  expect(migrated.invitations[0].history[0].proposedActivity).toEqual(['散步']);
 });
 
 it('adds empty daily notes and a month view preference to a migrated database', () => {

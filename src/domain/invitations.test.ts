@@ -47,6 +47,25 @@ it('applies the latest adjustment when the original sender accepts it', () => {
   });
 });
 
+it('does not share activity arrays with the source invitation or adjustment history', () => {
+  const invitation = invitationBuilder({ activity: ['看电影'] });
+  const confirmed = respondToInvitation(invitation, 'her', { type: 'confirm' });
+
+  confirmed.activity.push('吃晚饭');
+  expect(invitation.activity).toEqual(['看电影']);
+
+  const adjusted = respondToInvitation(invitationBuilder(), 'her', {
+    type: 'suggest-adjustment',
+    date: '2026-07-26',
+    periods: ['afternoon'],
+    activity: '逛展',
+  });
+  const accepted = respondToInvitation(adjusted, 'him', { type: 'accept-adjustment' });
+
+  accepted.activity.push('喝咖啡');
+  expect(adjusted.history.at(-1)?.proposedActivity).toEqual(['逛展']);
+});
+
 it('prevents changes after an invitation is rejected', () => {
   const rejected = invitationBuilder({ status: 'rejected' });
 
