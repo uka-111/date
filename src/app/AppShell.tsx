@@ -22,9 +22,9 @@ export function AppShell({
   return (
     <div className="app-shell">
       <header className="topbar">
-        <Link className="brand" to="/" aria-label="我们的约会日历首页">
+        <Link className="brand" to="/" aria-label="留一页给我们首页">
           <span aria-hidden="true">♡</span>
-          <span>我们的约会日历</span>
+          <span>留一页给我们</span>
         </Link>
         <div className="topbar-actions">
           <span className="identity-pill">

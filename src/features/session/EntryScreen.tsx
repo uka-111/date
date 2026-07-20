@@ -27,8 +27,8 @@ export function EntryScreen() {
   return (
     <main className="entry-page">
       <section className="entry-card card">
-        <h1>我们的约会日历</h1>
-        <p>把空闲时间和下一次约会，认真地告诉彼此。</p>
+        <h1>留一页给我们</h1>
+        <p>有些日子，值得提前留出来。</p>
 
       {!unlocked ? (
         <form onSubmit={unlock}>
