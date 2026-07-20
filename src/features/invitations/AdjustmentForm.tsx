@@ -148,8 +148,14 @@ export function AdjustmentForm({
                 type="button"
                 key={`${activity}-${index}`}
                 aria-label={activity}
-                aria-pressed="true"
-                disabled
+                aria-pressed={selectedActivities.includes(activity)}
+                onClick={() =>
+                  setSelectedActivities((current) =>
+                    current.includes(activity)
+                      ? current.filter((selected) => selected !== activity)
+                      : [...current, activity],
+                  )
+                }
               >
                 <span aria-hidden="true">✨</span> {activity}
               </button>

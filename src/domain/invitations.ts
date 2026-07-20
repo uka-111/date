@@ -5,6 +5,7 @@ import type {
   PartnerId,
   Period,
 } from './models';
+import { isValidDateInput } from './dateValidation';
 
 export type InvitationResponse =
   | { type: 'confirm' }
@@ -87,6 +88,12 @@ export function respondToInvitation(
   if (response.type === 'suggest-adjustment' && response.periods.length === 0) {
     throw new Error('请至少选择一个时段');
   }
+  if (
+    response.type === 'suggest-adjustment' &&
+    !isValidDateInput(response.date)
+  ) {
+    throw new Error('日期格式不正确');
+  }
   const normalizedActivities =
     response.type === 'suggest-adjustment'
       ? [
@@ -123,7 +130,9 @@ export function respondToInvitation(
   return {
     ...invitation,
     date: acceptedAdjustment?.proposedDate ?? invitation.date,
-    periods: acceptedAdjustment?.proposedPeriods ?? invitation.periods,
+    periods: [
+      ...(acceptedAdjustment?.proposedPeriods ?? invitation.periods),
+    ],
     activity: [...(acceptedAdjustment?.proposedActivity ?? invitation.activity)],
     status,
     updatedAt: now,

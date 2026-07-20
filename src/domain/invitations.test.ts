@@ -66,6 +66,24 @@ it('does not share activity arrays with the source invitation or adjustment hist
   expect(adjusted.history.at(-1)?.proposedActivity).toEqual(['逛展']);
 });
 
+it('does not share accepted periods with the source invitation or adjustment history', () => {
+  const invitation = invitationBuilder({ periods: ['evening'] });
+  const adjusted = respondToInvitation(invitation, 'her', {
+    type: 'suggest-adjustment',
+    date: '2026-07-26',
+    periods: ['afternoon'],
+    activity: ['逛展'],
+  });
+
+  const accepted = respondToInvitation(adjusted, 'him', {
+    type: 'accept-adjustment',
+  });
+  accepted.periods.push('morning');
+
+  expect(invitation.periods).toEqual(['evening']);
+  expect(adjusted.history.at(-1)?.proposedPeriods).toEqual(['afternoon']);
+});
+
 it('normalizes multiple suggested activities and applies them in order', () => {
   const invitation = invitationBuilder({ activity: ['看电影'] });
   const suggestedActivities = [' 逛展 ', '一起吃饭', '逛展', ' '];
@@ -104,6 +122,20 @@ it.each([{ activity: [] }, { activity: ['  ', '\t'] }])(
         activity,
       }),
     ).toThrow('请至少选择一个活动');
+  },
+);
+
+it.each(['', '2026/07/26', '2026-02-30'])(
+  'rejects an invalid adjustment date: %s',
+  (date) => {
+    expect(() =>
+      respondToInvitation(invitationBuilder(), 'her', {
+        type: 'suggest-adjustment',
+        date,
+        periods: ['afternoon'],
+        activity: ['逛展'],
+      }),
+    ).toThrow('日期格式不正确');
   },
 );
 

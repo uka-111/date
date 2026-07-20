@@ -235,9 +235,14 @@ it('initializes one custom activity in the input and preserves multiple unknown 
     />,
   );
   await user.click(screen.getByRole('button', { name: '建议调整' }));
+  await user.click(screen.getByRole('button', { name: '逛展' }));
+  expect(screen.getByRole('button', { name: '逛展' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
   await user.click(screen.getByRole('button', { name: '发送调整建议' }));
 
   expect(
     repository.read().invitations[0].history.at(-1)?.proposedActivity,
-  ).toEqual(['逛展', '喝咖啡']);
+  ).toEqual(['喝咖啡']);
 });
