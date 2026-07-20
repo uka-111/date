@@ -48,8 +48,8 @@ it('treats an adjustment as waiting for the original sender', () => {
   ).toBeInTheDocument();
 });
 
-it('shows multiple activities with a visible separator', () => {
-  render(
+it('shows multiple activities as individual tags', () => {
+  const { container } = render(
     <InvitationList
       partnerId="him"
       invitations={[
@@ -64,5 +64,9 @@ it('shows multiple activities with a visible separator', () => {
     />,
   );
 
-  expect(screen.getByText('看电影、一起吃饭')).toBeInTheDocument();
+  const tags = container.querySelectorAll('.activity-tag');
+
+  expect(tags).toHaveLength(2);
+  expect(tags[0]).toHaveTextContent('看电影');
+  expect(tags[1]).toHaveTextContent('一起吃饭');
 });

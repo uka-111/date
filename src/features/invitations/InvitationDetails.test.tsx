@@ -110,7 +110,11 @@ it('suggests multiple activities without replacing the original and applies them
     '看电影',
     '一起吃饭',
   ]);
-  expect(screen.getByText(/看电影、一起吃饭/)).toBeInTheDocument();
+  const latestAdjustment = screen.getByLabelText('最新调整建议');
+  const adjustmentTags = latestAdjustment.querySelectorAll('.activity-tag');
+  expect(adjustmentTags).toHaveLength(2);
+  expect(adjustmentTags[0]).toHaveTextContent('看电影');
+  expect(adjustmentTags[1]).toHaveTextContent('一起吃饭');
 
   recipientView.unmount();
   render(
@@ -127,9 +131,12 @@ it('suggests multiple activities without replacing the original and applies them
     '看电影',
     '一起吃饭',
   ]);
-  expect(
-    screen.getByRole('heading', { name: '看电影、一起吃饭' }),
-  ).toBeInTheDocument();
+  const headingTags = screen
+    .getByRole('heading', { level: 3 })
+    .querySelectorAll('.activity-tag');
+  expect(headingTags).toHaveLength(2);
+  expect(headingTags[0]).toHaveTextContent('看电影');
+  expect(headingTags[1]).toHaveTextContent('一起吃饭');
 });
 
 it('submits preset and custom activities together', async () => {

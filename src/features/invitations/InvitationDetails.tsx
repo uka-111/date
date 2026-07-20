@@ -7,6 +7,7 @@ import {
 import type { Invitation, PartnerId, Period } from '../../domain/models';
 import type { NotificationKind } from '../../storage/schema';
 import { AdjustmentForm } from './AdjustmentForm';
+import { ActivityTags } from './ActivityTags';
 
 const periodLabels: Record<Period, string> = {
   all_day: '全天',
@@ -102,7 +103,9 @@ export function InvitationDetails({
       className="invitation-details card"
       aria-labelledby={`invitation-${current.id}`}
     >
-      <h3 id={`invitation-${current.id}`}>{current.activity.join('、')}</h3>
+      <h3 id={`invitation-${current.id}`}>
+        <ActivityTags activities={current.activity} />
+      </h3>
       <dl>
         <div>
           <dt>发起方</dt>
@@ -127,10 +130,21 @@ export function InvitationDetails({
         <section aria-label="最新调整建议">
           <h4>最新调整建议</h4>
           <p>
-            {latestAdjustment.proposedDate} ·{' '}
-            {latestAdjustment.proposedPeriods
-              ?.map((period) => periodLabels[period]).join('、') ?? ''}{' '}
-            · {latestAdjustment.proposedActivity?.join('、') ?? ''}
+            {latestAdjustment.proposedDate}
+            {latestAdjustment.proposedPeriods?.length ? (
+              <>
+                {' · '}
+                {latestAdjustment.proposedPeriods
+                  .map((period) => periodLabels[period])
+                  .join('、')}
+              </>
+            ) : null}
+            {latestAdjustment.proposedActivity?.length ? (
+              <>
+                {' · '}
+                <ActivityTags activities={latestAdjustment.proposedActivity} />
+              </>
+            ) : null}
           </p>
           {latestAdjustment.note && <p>{latestAdjustment.note}</p>}
         </section>

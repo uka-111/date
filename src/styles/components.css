@@ -372,6 +372,28 @@ fieldset label {
   gap: 10px;
 }
 
+.activity-tags {
+  display: inline-flex;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+}
+
+.activity-tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--cocoa);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 4px 8px;
+}
+
 .activity-option,
 .form-card button[type="submit"],
 .inline-form button[type="submit"],
