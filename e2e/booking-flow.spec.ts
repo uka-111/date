@@ -69,6 +69,8 @@ test('mobile layout does not overflow horizontally', async ({ page }) => {
 
   expect(Math.abs(himIdentityBox.y - herIdentityBox.y)).toBeLessThanOrEqual(1);
   expect(himIdentityBox.x).not.toBe(herIdentityBox.x);
+  expect(Math.abs(himIdentityBox.width - herIdentityBox.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(himIdentityBox.height - herIdentityBox.height)).toBeLessThanOrEqual(1);
 
   const dimensions = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
@@ -76,4 +78,26 @@ test('mobile layout does not overflow horizontally', async ({ page }) => {
   }));
 
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
+
+  await page.setViewportSize({ width: 320, height: 844 });
+  const [narrowHimIdentityBox, narrowHerIdentityBox] = await Promise.all([
+    himIdentityButton.boundingBox(),
+    herIdentityButton.boundingBox(),
+  ]);
+
+  if (!narrowHimIdentityBox || !narrowHerIdentityBox) {
+    throw new Error('Identity options must remain visible at narrow widths.');
+  }
+
+  expect(Math.abs(narrowHimIdentityBox.x - narrowHerIdentityBox.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(narrowHimIdentityBox.y - narrowHerIdentityBox.y)).toBeGreaterThan(1);
+  expect(Math.abs(narrowHimIdentityBox.width - narrowHerIdentityBox.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(narrowHimIdentityBox.height - narrowHerIdentityBox.height)).toBeLessThanOrEqual(1);
+
+  const narrowDimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+
+  expect(narrowDimensions.content).toBeLessThanOrEqual(narrowDimensions.viewport);
 });

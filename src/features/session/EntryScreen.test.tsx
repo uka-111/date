@@ -39,6 +39,9 @@ it('renders two identity cards inside a dedicated options group', async () => {
   await user.type(screen.getByLabelText('专属口令'), '2021121');
   await user.click(screen.getByRole('button', { name: '进入我们的日历' }));
 
+  expect(
+    screen.queryByRole('region', { name: '今天是谁在使用？' }),
+  ).not.toBeInTheDocument();
   const group = screen.getByRole('group', { name: '今天是谁在使用？' });
   expect(within(group).getAllByRole('button')).toHaveLength(2);
   expect(within(group).getByRole('button', { name: '我是他' })).toHaveClass(

@@ -44,7 +44,7 @@ export function EntryScreen() {
           <button type="submit">进入我们的日历</button>
         </form>
       ) : (
-        <section className="identity-choice" aria-labelledby="identity-heading">
+        <section className="identity-choice">
           <h2 id="identity-heading">今天是谁在使用？</h2>
           <div
             className="identity-options"
