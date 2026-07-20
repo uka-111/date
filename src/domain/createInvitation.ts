@@ -1,11 +1,11 @@
-import { isValid, parseISO } from 'date-fns';
 import type { Invitation, PartnerId, Period } from './models';
+import { isValidDateInput } from './dateValidation';
 
 interface CreateInvitationInput {
   senderId: PartnerId;
   date: string;
   periods: Period[];
-  activity: string;
+  activity: string[];
   note: string;
 }
 
@@ -13,12 +13,12 @@ export function createInvitation(
   input: CreateInvitationInput,
   now = new Date().toISOString(),
 ): Invitation {
-  const activity = input.activity.trim();
+  const activity = [...new Set(input.activity.map((activity) => activity.trim()).filter(Boolean))];
   const periods = [...new Set(input.periods)];
-  if (!input.date || periods.length === 0 || !activity) {
+  if (!input.date || periods.length === 0 || activity.length === 0) {
     throw new Error('请完整填写日期、时段和活动');
   }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !isValid(parseISO(input.date))) {
+  if (!isValidDateInput(input.date)) {
     throw new Error('日期格式不正确');
   }
 

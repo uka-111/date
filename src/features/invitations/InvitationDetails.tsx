@@ -7,6 +7,7 @@ import {
 import type { Invitation, PartnerId, Period } from '../../domain/models';
 import type { NotificationKind } from '../../storage/schema';
 import { AdjustmentForm } from './AdjustmentForm';
+import { ActivityTags } from './ActivityTags';
 
 const periodLabels: Record<Period, string> = {
   all_day: '全天',
@@ -98,8 +99,13 @@ export function InvitationDetails({
     .find((entry) => entry.action === 'adjustment_suggested');
 
   return (
-    <article className="invitation-details card" aria-labelledby={`invitation-${current.id}`}>
-      <h3 id={`invitation-${current.id}`}>{current.activity}</h3>
+    <article
+      className="invitation-details card"
+      aria-labelledby={`invitation-${current.id}`}
+    >
+      <h3 id={`invitation-${current.id}`}>
+        <ActivityTags activities={current.activity} />
+      </h3>
       <dl>
         <div>
           <dt>发起方</dt>
@@ -124,10 +130,21 @@ export function InvitationDetails({
         <section aria-label="最新调整建议">
           <h4>最新调整建议</h4>
           <p>
-            {latestAdjustment.proposedDate} ·{' '}
-            {latestAdjustment.proposedPeriods
-              ?.map((period) => periodLabels[period]).join('、') ?? ''}{' '}
-            · {latestAdjustment.proposedActivity}
+            {latestAdjustment.proposedDate}
+            {latestAdjustment.proposedPeriods?.length ? (
+              <>
+                {' · '}
+                {latestAdjustment.proposedPeriods
+                  .map((period) => periodLabels[period])
+                  .join('、')}
+              </>
+            ) : null}
+            {latestAdjustment.proposedActivity?.length ? (
+              <>
+                {' · '}
+                <ActivityTags activities={latestAdjustment.proposedActivity} />
+              </>
+            ) : null}
           </p>
           {latestAdjustment.note && <p>{latestAdjustment.note}</p>}
         </section>
@@ -148,7 +165,11 @@ export function InvitationDetails({
 
       {!showAdjustment && current.status === 'pending' && isRecipient && (
         <div>
-          <button type="button" onClick={() => applyResponse({ type: 'confirm' })}>
+          <button
+            className="primary-action"
+            type="button"
+            onClick={() => applyResponse({ type: 'confirm' })}
+          >
             确认约会
           </button>
           <button type="button" onClick={() => setConfirmation('reject')}>
@@ -172,6 +193,7 @@ export function InvitationDetails({
 
       {current.status === 'adjustment_pending' && isSender && (
         <button
+          className="primary-action"
           type="button"
           onClick={() => applyResponse({ type: 'accept-adjustment' })}
         >
@@ -197,6 +219,7 @@ export function InvitationDetails({
               : '确认取消这个约会吗？'}
           </h4>
           <button
+            className="primary-action"
             type="button"
             onClick={() =>
               applyResponse({

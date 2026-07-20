@@ -14,12 +14,12 @@ function upsertById<T extends { id: string }>(items: T[], value: T): T[] {
   return items.map((item) => (item.id === value.id ? value : item));
 }
 
-function isDatabase(value: unknown): value is LocalDatabase | { version: 1; availability: Availability[]; invitations: unknown[]; notifications: NotificationRecord[] } {
+function isDatabase(value: unknown): value is Parameters<typeof migrateDatabase>[0] {
   if (!value || typeof value !== 'object') return false;
   const database = value as Partial<LocalDatabase>;
   const version = (value as { version?: number }).version;
   return (
-    (version === 1 || version === 2) &&
+    (version === 1 || version === 2 || version === 3) &&
     Array.isArray(database.availability) &&
     Array.isArray(database.invitations) &&
     Array.isArray(database.notifications)
@@ -37,7 +37,7 @@ export function createLocalRepository(
       const parsed: unknown = JSON.parse(stored);
       if (!isDatabase(parsed)) throw new Error('invalid schema');
       const migrated = migrateDatabase(parsed as Parameters<typeof migrateDatabase>[0]);
-      if ((parsed as { version?: number }).version === 1) write(migrated);
+      if ((parsed as { version?: number }).version !== 3) write(migrated);
       return migrated;
     } catch {
       throw new Error('本地数据无法读取');

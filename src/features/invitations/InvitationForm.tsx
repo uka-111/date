@@ -34,7 +34,8 @@ export function InvitationForm({
 }: InvitationFormProps) {
   const [date, setDate] = useState(initialDate);
   const [selectedPeriods, setSelectedPeriods] = useState<Period[]>([]);
-  const [activity, setActivity] = useState('');
+  const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
+  const [customSelected, setCustomSelected] = useState(false);
   const [customActivity, setCustomActivity] = useState('');
   const [note, setNote] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
@@ -44,8 +45,10 @@ export function InvitationForm({
     const nextErrors: FormErrors = {};
     if (!date) nextErrors.date = '日期不能为空';
     if (selectedPeriods.length === 0) nextErrors.period = '时段不能为空';
-    if (!activity) nextErrors.activity = '活动不能为空';
-    if (activity === 'custom' && !customActivity.trim()) {
+    if (selectedActivities.length === 0 && !customSelected) {
+      nextErrors.activity = '活动不能为空';
+    }
+    if (customSelected && !customActivity.trim()) {
       nextErrors.customActivity = '请填写自定义活动';
     }
     return nextErrors;
@@ -65,7 +68,10 @@ export function InvitationForm({
         senderId: partnerId,
         date,
         periods: selectedPeriods,
-        activity: activity === 'custom' ? customActivity : activity,
+        activity: [
+          ...selectedActivities,
+          ...(customSelected && customActivity.trim() ? [customActivity.trim()] : []),
+        ],
         note,
       });
       repository.saveInvitationWithNotification(invitation, {
@@ -79,7 +85,8 @@ export function InvitationForm({
       setErrors({});
       setDate('');
       setSelectedPeriods([]);
-      setActivity('');
+      setSelectedActivities([]);
+      setCustomSelected(false);
       setCustomActivity('');
       setNote('');
       setSuccess(`邀请已经发给${invitation.recipientId === 'her' ? '她' : '他'}啦`);
@@ -131,8 +138,12 @@ export function InvitationForm({
               className="activity-option"
               type="button"
               key={option.value}
-              aria-pressed={activity === option.value}
-              onClick={() => setActivity(option.value)}
+              aria-pressed={selectedActivities.includes(option.value)}
+              onClick={() => setSelectedActivities((current) =>
+                current.includes(option.value)
+                  ? current.filter((activity) => activity !== option.value)
+                  : [...current, option.value],
+              )}
             >
               <span aria-hidden="true">{option.icon}</span> {option.label}
             </button>
@@ -141,8 +152,8 @@ export function InvitationForm({
             className="activity-option"
             type="button"
             aria-label="自定义"
-            aria-pressed={activity === 'custom'}
-            onClick={() => setActivity('custom')}
+            aria-pressed={customSelected}
+            onClick={() => setCustomSelected((current) => !current)}
           >
             ✨ 自定义
           </button>
@@ -150,7 +161,7 @@ export function InvitationForm({
         {errors.activity && <p role="alert">{errors.activity}</p>}
       </fieldset>
 
-      {activity === 'custom' && (
+      {customSelected && (
         <div>
           <label htmlFor="custom-activity">自定义活动</label>
           <input

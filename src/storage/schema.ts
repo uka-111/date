@@ -17,7 +17,7 @@ export interface NotificationRecord {
 }
 
 export interface LocalDatabase {
-  version: 2;
+  version: 3;
   availability: Availability[];
   invitations: Invitation[];
   notifications: NotificationRecord[];
@@ -27,7 +27,7 @@ export interface LocalDatabase {
 
 export function emptyDatabase(): LocalDatabase {
   return {
-    version: 2,
+    version: 3,
     availability: [],
     invitations: [],
     notifications: [],

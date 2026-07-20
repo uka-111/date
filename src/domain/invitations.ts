@@ -5,6 +5,7 @@ import type {
   PartnerId,
   Period,
 } from './models';
+import { isValidDateInput } from './dateValidation';
 
 export type InvitationResponse =
   | { type: 'confirm' }
@@ -14,7 +15,7 @@ export type InvitationResponse =
       type: 'suggest-adjustment';
       date: string;
       periods: Period[];
-      activity: string;
+      activity: string[];
       note?: string;
     }
   | { type: 'accept-adjustment' };
@@ -87,6 +88,26 @@ export function respondToInvitation(
   if (response.type === 'suggest-adjustment' && response.periods.length === 0) {
     throw new Error('请至少选择一个时段');
   }
+  if (
+    response.type === 'suggest-adjustment' &&
+    !isValidDateInput(response.date)
+  ) {
+    throw new Error('日期格式不正确');
+  }
+  const normalizedActivities =
+    response.type === 'suggest-adjustment'
+      ? [
+          ...new Set(
+            response.activity.map((activity) => activity.trim()).filter(Boolean),
+          ),
+        ]
+      : undefined;
+  if (
+    response.type === 'suggest-adjustment' &&
+    normalizedActivities?.length === 0
+  ) {
+    throw new Error('请至少选择一个活动');
+  }
   assertTransitionAllowed(invitation, actorId, response);
 
   const { action, status } = responseResult(response);
@@ -101,7 +122,7 @@ export function respondToInvitation(
     response.type === 'accept-adjustment' &&
     (!acceptedAdjustment?.proposedDate ||
       !acceptedAdjustment.proposedPeriods?.length ||
-      !acceptedAdjustment.proposedActivity)
+      !acceptedAdjustment.proposedActivity?.length)
   ) {
     throw new Error('没有可以接受的调整建议');
   }
@@ -109,8 +130,10 @@ export function respondToInvitation(
   return {
     ...invitation,
     date: acceptedAdjustment?.proposedDate ?? invitation.date,
-    periods: acceptedAdjustment?.proposedPeriods ?? invitation.periods,
-    activity: acceptedAdjustment?.proposedActivity ?? invitation.activity,
+    periods: [
+      ...(acceptedAdjustment?.proposedPeriods ?? invitation.periods),
+    ],
+    activity: [...(acceptedAdjustment?.proposedActivity ?? invitation.activity)],
     status,
     updatedAt: now,
     history: [
@@ -125,10 +148,9 @@ export function respondToInvitation(
           response.type === 'suggest-adjustment' ? response.date : undefined,
         proposedPeriods:
           response.type === 'suggest-adjustment' ? [...new Set(response.periods)] : undefined,
-        proposedActivity:
-          response.type === 'suggest-adjustment'
-            ? response.activity.trim()
-            : undefined,
+        proposedActivity: normalizedActivities
+          ? [...normalizedActivities]
+          : undefined,
       },
     ],
   };
