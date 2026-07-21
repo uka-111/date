@@ -5,6 +5,60 @@ set local search_path = public, auth, extensions;
 
 select plan(48);
 
+create function pg_temp.normalized_function_definition(p_function regprocedure)
+returns text
+language sql
+stable
+as $$
+  select lower(
+    btrim(
+      regexp_replace(
+        regexp_replace(
+          regexp_replace(
+            pg_get_functiondef(p_function),
+            '/\*([^*]|\*+[^*/])*\*+/',
+            ' ',
+            'g'
+          ),
+          '--.*$',
+          ' ',
+          'gn'
+        ),
+        '[[:space:]]+',
+        ' ',
+        'g'
+      )
+    )
+  );
+$$;
+
+create function pg_temp.commented_lock_sample()
+returns void
+language plpgsql
+as $$
+begin
+  perform 1; -- perform pg_advisory_xact_lock(hashtextextended(v_user_id::text, 0));
+
+  /*
+    select 1
+    from public.couples
+    for update;
+  */
+end;
+$$;
+
+do $$
+declare
+  v_definition text := pg_temp.normalized_function_definition(
+    'pg_temp.commented_lock_sample()'::regprocedure
+  );
+begin
+  if v_definition ~ 'pg_advisory_xact_lock|for[[:space:]]+update' then
+    raise exception 'normalized function definition retained commented lock text: %', v_definition;
+  end if;
+end;
+$$;
+
 create temporary table pairing_test_state (
   key text primary key,
   couple_id uuid,
@@ -432,7 +486,7 @@ insert into public.couple_invites (
 )
 values (
   (select couple_id from pairing_test_state where key = 'a_initial'),
-  encode(digest('FULLCOUPLE01', 'sha256'), 'hex'),
+  encode(digest('FULLCUPLE234', 'sha256'), 'hex'),
   '00000000-0000-0000-0000-0000000000a1',
   now() + interval '7 days'
 );
@@ -441,7 +495,7 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c3
 set local role authenticated;
 
 select throws_ok(
-  $$select * from public.redeem_couple_invite('FULLCOUPLE01')$$,
+  $$select * from public.redeem_couple_invite('FULLCUPLE234')$$,
   'P0001',
   'Invite code unavailable',
   'C cannot join a full couple with an otherwise available invite'
@@ -460,7 +514,7 @@ select ok(
       and used_at is null
       and used_by is null
     from public.couple_invites
-    where code_hash = encode(digest('FULLCOUPLE01', 'sha256'), 'hex')
+    where code_hash = encode(digest('FULLCUPLE234', 'sha256'), 'hex')
   ),
   'a failed third-member redemption leaves two members and the invite unused'
 );
@@ -679,74 +733,34 @@ select ok(
 );
 
 select ok(
-  (
-    select normalized_definition ~
-      'perform[[:space:]]+pg_advisory_xact_lock[[:space:]]*\([[:space:]]*hashtextextended[[:space:]]*\([[:space:]]*v_user_id::text[[:space:]]*,[[:space:]]*0[[:space:]]*\)[[:space:]]*\)'
-    from (
-      select lower(
-        regexp_replace(
-          pg_get_functiondef('public.create_couple_with_invite(public.partner_identity)'::regprocedure),
-          '[[:space:]]+',
-          ' ',
-          'g'
-        )
-      ) as normalized_definition
-    ) as function_definition
-  ),
+  pg_temp.normalized_function_definition(
+    'public.create_couple_with_invite(public.partner_identity)'::regprocedure
+  ) ~
+    'perform[[:space:]]+pg_advisory_xact_lock[[:space:]]*\([[:space:]]*hashtextextended[[:space:]]*\([[:space:]]*v_user_id::text[[:space:]]*,[[:space:]]*0[[:space:]]*\)[[:space:]]*\)',
   'create serializes the authenticated user with the expected advisory transaction lock key'
 );
 
 select ok(
-  (
-    select normalized_definition ~
-      'perform[[:space:]]+1[[:space:]]+from[[:space:]]+public\.couples[[:space:]]+as[[:space:]]+c[[:space:]]+where[[:space:]]+c\.id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+for[[:space:]]+update'
-    from (
-      select lower(
-        regexp_replace(
-          pg_get_functiondef('public.regenerate_couple_invite()'::regprocedure),
-          '[[:space:]]+',
-          ' ',
-          'g'
-        )
-      ) as normalized_definition
-    ) as function_definition
-  ),
+  pg_temp.normalized_function_definition(
+    'public.regenerate_couple_invite()'::regprocedure
+  ) ~
+    'perform[[:space:]]+1[[:space:]]+from[[:space:]]+public\.couples[[:space:]]+as[[:space:]]+c[[:space:]]+where[[:space:]]+c\.id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+for[[:space:]]+update',
   'regenerate locks the selected public.couples row before counting members'
 );
 
 select ok(
-  (
-    select normalized_definition ~
-      'perform[[:space:]]+1[[:space:]]+from[[:space:]]+public\.couples[[:space:]]+as[[:space:]]+c[[:space:]]+where[[:space:]]+c\.id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+for[[:space:]]+update'
-    from (
-      select lower(
-        regexp_replace(
-          pg_get_functiondef('public.redeem_couple_invite(text)'::regprocedure),
-          '[[:space:]]+',
-          ' ',
-          'g'
-        )
-      ) as normalized_definition
-    ) as function_definition
-  ),
+  pg_temp.normalized_function_definition(
+    'public.redeem_couple_invite(text)'::regprocedure
+  ) ~
+    'perform[[:space:]]+1[[:space:]]+from[[:space:]]+public\.couples[[:space:]]+as[[:space:]]+c[[:space:]]+where[[:space:]]+c\.id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+for[[:space:]]+update',
   'redeem locks the selected public.couples row before validating capacity'
 );
 
 select ok(
-  (
-    select normalized_definition ~
-      'select[[:space:]]+ci\.expires_at[[:space:]]*,[[:space:]]*ci\.used_at[[:space:]]*,[[:space:]]*ci\.revoked_at[[:space:]]+into[[:space:]]+v_expires_at[[:space:]]*,[[:space:]]*v_used_at[[:space:]]*,[[:space:]]*v_revoked_at[[:space:]]+from[[:space:]]+public\.couple_invites[[:space:]]+as[[:space:]]+ci[[:space:]]+where[[:space:]]+ci\.id[[:space:]]*=[[:space:]]*v_invite_id[[:space:]]+and[[:space:]]+ci\.couple_id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+and[[:space:]]+ci\.code_hash[[:space:]]*=[[:space:]]*v_code_hash[[:space:]]+for[[:space:]]+update'
-    from (
-      select lower(
-        regexp_replace(
-          pg_get_functiondef('public.redeem_couple_invite(text)'::regprocedure),
-          '[[:space:]]+',
-          ' ',
-          'g'
-        )
-      ) as normalized_definition
-    ) as function_definition
-  ),
+  pg_temp.normalized_function_definition(
+    'public.redeem_couple_invite(text)'::regprocedure
+  ) ~
+    'select[[:space:]]+ci\.expires_at[[:space:]]*,[[:space:]]*ci\.used_at[[:space:]]*,[[:space:]]*ci\.revoked_at[[:space:]]+into[[:space:]]+v_expires_at[[:space:]]*,[[:space:]]*v_used_at[[:space:]]*,[[:space:]]*v_revoked_at[[:space:]]+from[[:space:]]+public\.couple_invites[[:space:]]+as[[:space:]]+ci[[:space:]]+where[[:space:]]+ci\.id[[:space:]]*=[[:space:]]*v_invite_id[[:space:]]+and[[:space:]]+ci\.couple_id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+and[[:space:]]+ci\.code_hash[[:space:]]*=[[:space:]]*v_code_hash[[:space:]]+for[[:space:]]+update',
   'redeem locks the selected public.couple_invites row by invite id before consuming it'
 );
 
