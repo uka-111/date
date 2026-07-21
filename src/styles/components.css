@@ -153,6 +153,103 @@
   text-align: center;
 }
 
+.session-state {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.session-card {
+  width: min(100%, 520px);
+}
+
+.session-eyebrow {
+  margin-bottom: 6px;
+  color: var(--coral-dark);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  padding: 4px;
+}
+
+.entry-card .auth-tabs button {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.entry-card .auth-tabs button[aria-selected="true"] {
+  background: var(--surface);
+  color: var(--coral-dark);
+  box-shadow: 0 3px 14px rgba(103, 66, 55, 0.08);
+}
+
+.entry-card form label:not(.checkbox-row) {
+  display: grid;
+  gap: 6px;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.pairing-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 28px 0 18px;
+}
+
+.entry-card .pairing-options button,
+.entry-card .identity-option {
+  width: 100%;
+  min-height: 92px;
+}
+
+.entry-card .identity-option[aria-pressed="false"] {
+  background: var(--surface);
+  color: var(--cocoa);
+}
+
+.invite-result {
+  margin: 24px 0 18px;
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  padding: 18px;
+}
+
+.invite-code {
+  display: block;
+  margin: 12px 0;
+  color: var(--coral-dark);
+  font-size: clamp(1.35rem, 6vw, 2rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.entry-card .quiet-action {
+  margin-top: 18px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
 .identity-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -351,6 +448,7 @@ legend {
 }
 
 input[type="text"],
+input[type="email"],
 input[type="password"],
 input[type="date"],
 input:not([type]),
@@ -578,7 +676,8 @@ fieldset label {
 }
 
 @media (max-width: 360px) {
-  .identity-options {
+  .identity-options,
+  .pairing-options {
     grid-template-columns: 1fr;
   }
 }
