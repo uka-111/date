@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import type { PairingResult } from '../../auth/authGateway';
 import type { PartnerId } from '../../domain/models';
+import { useSignOutAction } from './useSignOutAction';
 
 interface PairingScreenProps {
   displayName: string;
@@ -46,6 +47,7 @@ export function PairingScreen({ displayName, onCreate, onRedeem, onContinue, onS
   const [created, setCreated] = useState<PairingResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { signingOut, signOutError, runSignOut } = useSignOutAction(onSignOut);
 
   async function createSpace() {
     if (!identity) {
@@ -128,7 +130,8 @@ export function PairingScreen({ displayName, onCreate, onRedeem, onContinue, onS
           </form>
         )}
 
-        <button className="quiet-action" type="button" onClick={() => void onSignOut()}>退出账号</button>
+        {signOutError && <p role="alert">{signOutError}</p>}
+        <button className="quiet-action" type="button" disabled={signingOut} onClick={() => void runSignOut()}>{signingOut ? '正在退出...' : '退出账号'}</button>
       </section>
     </main>
   );

@@ -45,7 +45,9 @@ export class FakeAuthGateway implements AuthGateway {
 
   subscribe(listener: (session: AuthSession | null) => void) {
     this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
   async signIn(input: SignInInput) {

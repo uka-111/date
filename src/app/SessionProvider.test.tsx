@@ -17,6 +17,23 @@ it('restores a signed-out session after loading', async () => {
   await waitFor(() => expect(result.current.state).toEqual({ status: 'signed_out' }));
 });
 
+it('finishes loading when subscribe emits the restored session synchronously', async () => {
+  const session = { userId: 'user-a', email: 'a@example.com', emailVerified: true };
+  const gateway = new FakeAuthGateway({
+    session,
+    accountContext: { displayName: '小雨', membership: null },
+  });
+  gateway.subscribe = (listener) => {
+    listener(session);
+    return () => undefined;
+  };
+
+  const { result } = renderHook(useSession, { wrapper: wrapperFor(gateway) });
+
+  await waitFor(() => expect(result.current.state.status).toBe('unpaired'));
+  expect(gateway.loadAccountContextCalls).toEqual(['user-a']);
+});
+
 it('requires verification for an unverified account', async () => {
   const gateway = new FakeAuthGateway({
     session: { userId: 'user-a', email: 'a@example.com', emailVerified: false },

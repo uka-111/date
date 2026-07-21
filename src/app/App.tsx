@@ -31,6 +31,7 @@ function AppContent() {
           displayName={session.state.displayName}
           memberCount={session.state.memberCount}
           onRegenerateInvite={session.regenerateInvite}
+          onRefresh={session.reload}
           onSignOut={session.signOut}
         />
       );

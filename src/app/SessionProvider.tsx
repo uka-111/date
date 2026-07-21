@@ -116,15 +116,16 @@ export function SessionProvider({
     gateway: AuthGateway,
     force = false,
   ) => {
-    const version = ++requestVersion.current;
+    const observedVersion = requestVersion.current;
     try {
       const session = await gateway.restoreSession();
-      if (version !== requestVersion.current) return;
+      if (observedVersion !== requestVersion.current) return;
       if (!force && sameSession(activeSession.current, session)) return;
       activeSession.current = session;
+      const version = ++requestVersion.current;
       await resolveSession(gateway, session, version);
     } catch (error) {
-      if (version === requestVersion.current) {
+      if (observedVersion === requestVersion.current) {
         setState({ status: 'error', message: errorMessage(error) });
       }
     }

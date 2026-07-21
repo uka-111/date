@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { useState } from 'react';
 import userEvent from '@testing-library/user-event';
 import { CloudSetupScreen } from './CloudSetupScreen';
 
@@ -11,6 +12,7 @@ it('lets a single member regenerate a one-time visible invite', async () => {
       onRegenerateInvite={vi.fn().mockResolvedValue({
         coupleId: 'couple-1', partnerId: 'her', inviteCode: 'NEWCODE12345', expiresAt: '2026-07-29T10:00:00.000Z',
       })}
+      onRefresh={vi.fn()}
       onSignOut={vi.fn()}
     />,
   );
@@ -20,8 +22,77 @@ it('lets a single member regenerate a one-time visible invite', async () => {
 });
 
 it('shows completion and no regenerate action when both members have joined', () => {
-  render(<CloudSetupScreen displayName="小雨" memberCount={2} onRegenerateInvite={vi.fn()} onSignOut={vi.fn()} />);
+  render(<CloudSetupScreen displayName="小雨" memberCount={2} onRegenerateInvite={vi.fn()} onRefresh={vi.fn()} onSignOut={vi.fn()} />);
 
   expect(screen.getByText('双方已配对')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: '重新生成邀请码' })).not.toBeInTheDocument();
+});
+
+it('refreshes membership when the page regains focus', async () => {
+  const onRefresh = vi.fn();
+
+  function Harness() {
+    const [memberCount, setMemberCount] = useState(1);
+    return (
+      <CloudSetupScreen
+        displayName="小雨"
+        memberCount={memberCount}
+        onRegenerateInvite={vi.fn()}
+        onRefresh={async () => {
+          onRefresh();
+          setMemberCount(2);
+        }}
+        onSignOut={vi.fn()}
+      />
+    );
+  }
+
+  render(<Harness />);
+  expect(screen.getByText('等待对方加入')).toBeInTheDocument();
+
+  fireEvent.focus(window);
+
+  expect(await screen.findByText('双方已配对')).toBeInTheDocument();
+  expect(onRefresh).toHaveBeenCalledOnce();
+});
+
+it('offers an explicit membership refresh action', async () => {
+  const onRefresh = vi.fn().mockResolvedValue(undefined);
+  const user = userEvent.setup();
+  render(
+    <CloudSetupScreen
+      displayName="小雨"
+      memberCount={1}
+      onRegenerateInvite={vi.fn()}
+      onRefresh={onRefresh}
+      onSignOut={vi.fn()}
+    />,
+  );
+
+  await user.click(screen.getByRole('button', { name: '刷新配对状态' }));
+
+  expect(onRefresh).toHaveBeenCalledOnce();
+});
+
+it('shows pending and a stable error when sign out fails', async () => {
+  let rejectSignOut!: (error: Error) => void;
+  const onSignOut = vi.fn(() => new Promise<void>((_, reject) => {
+    rejectSignOut = reject;
+  }));
+  const user = userEvent.setup();
+  render(
+    <CloudSetupScreen
+      displayName="小雨"
+      memberCount={2}
+      onRegenerateInvite={vi.fn()}
+      onRefresh={vi.fn()}
+      onSignOut={onSignOut}
+    />,
+  );
+
+  await user.click(screen.getByRole('button', { name: '退出账号' }));
+  expect(screen.getByRole('button', { name: '正在退出...' })).toBeDisabled();
+
+  rejectSignOut(new Error('sensitive backend detail'));
+  expect(await screen.findByRole('alert')).toHaveTextContent('退出失败，请稍后再试');
 });
