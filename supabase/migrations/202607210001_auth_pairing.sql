@@ -428,7 +428,7 @@ begin
     from public.couple_members as cm
     where cm.user_id = v_user_id
   ) then
-    raise exception 'User already belongs to a couple';
+    raise exception 'Invite code unavailable';
   end if;
 
   if not exists (
