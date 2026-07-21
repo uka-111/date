@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FakeAuthGateway } from '../test/fakeAuthGateway';
 import { App } from './App';
@@ -57,4 +57,57 @@ it('preserves a newly-created invite across duplicate auth events until continue
   await user.click(screen.getByRole('button', { name: '进入我们的空间' }));
   expect(await screen.findByText('等待对方加入')).toBeInTheDocument();
   expect(gateway.loadAccountContextCalls).toEqual(['u1', 'u1']);
+});
+
+it('keeps the paired screen and invite mounted during a background membership refresh', async () => {
+  const session = { userId: 'u1', email: 'a@example.com', emailVerified: true };
+  const gateway = new FakeAuthGateway({
+    session,
+    accountContext: {
+      displayName: '小雨',
+      membership: { coupleId: 'couple-1', partnerId: 'her', memberCount: 1 },
+    },
+  });
+  const user = userEvent.setup();
+  render(<App authGateway={gateway} />);
+  await screen.findByText('等待对方加入');
+  await user.click(screen.getByRole('button', { name: '重新生成邀请码' }));
+  expect(await screen.findByText('NEWCODE12345')).toBeInTheDocument();
+
+  let resolveContext!: (context: typeof gateway.accountContext) => void;
+  gateway.loadContext = () => new Promise((resolve) => {
+    resolveContext = resolve;
+  });
+  fireEvent.focus(window);
+
+  expect(screen.getByText('等待对方加入')).toBeInTheDocument();
+  expect(screen.getByText('NEWCODE12345')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '重新生成邀请码' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: '退出账号' })).toBeDisabled();
+  await waitFor(() => expect(resolveContext).toBeTypeOf('function'));
+
+  await act(async () => resolveContext({
+    displayName: '小雨',
+    membership: { coupleId: 'couple-1', partnerId: 'her', memberCount: 2 },
+  }));
+  expect(await screen.findByText('双方已配对')).toBeInTheDocument();
+});
+
+it('keeps the previous paired state and shows a local error when background refresh fails', async () => {
+  const gateway = new FakeAuthGateway({
+    session: { userId: 'u1', email: 'a@example.com', emailVerified: true },
+    accountContext: {
+      displayName: '小雨',
+      membership: { coupleId: 'couple-1', partnerId: 'her', memberCount: 1 },
+    },
+  });
+  render(<App authGateway={gateway} />);
+  await screen.findByText('等待对方加入');
+  gateway.loadContext = () => Promise.reject(new Error('sensitive backend detail'));
+
+  fireEvent.focus(window);
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('刷新配对状态失败，请稍后再试');
+  expect(screen.getByText('等待对方加入')).toBeInTheDocument();
+  expect(screen.queryByText('sensitive backend detail')).not.toBeInTheDocument();
 });

@@ -1,8 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function useSignOutAction(onSignOut: () => Promise<void> | void) {
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState('');
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   async function runSignOut() {
     setSigningOut(true);
@@ -10,9 +18,9 @@ export function useSignOutAction(onSignOut: () => Promise<void> | void) {
     try {
       await onSignOut();
     } catch {
-      setSignOutError('退出失败，请稍后再试');
+      if (mounted.current) setSignOutError('退出失败，请稍后再试');
     } finally {
-      setSigningOut(false);
+      if (mounted.current) setSigningOut(false);
     }
   }
 

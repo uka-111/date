@@ -96,3 +96,30 @@ it('shows pending and a stable error when sign out fails', async () => {
   rejectSignOut(new Error('sensitive backend detail'));
   expect(await screen.findByRole('alert')).toHaveTextContent('退出失败，请稍后再试');
 });
+
+it('does not start a focus refresh while invite regeneration is pending', async () => {
+  let resolveInvite!: (invite: { inviteCode: string; expiresAt: string }) => void;
+  const onRegenerateInvite = vi.fn(() => new Promise<{ inviteCode: string; expiresAt: string }>((resolve) => {
+    resolveInvite = resolve;
+  }));
+  const onRefresh = vi.fn().mockResolvedValue(undefined);
+  const user = userEvent.setup();
+  render(
+    <CloudSetupScreen
+      displayName="小雨"
+      memberCount={1}
+      onRegenerateInvite={onRegenerateInvite}
+      onRefresh={onRefresh}
+      onSignOut={vi.fn()}
+    />,
+  );
+
+  await user.click(screen.getByRole('button', { name: '重新生成邀请码' }));
+  expect(screen.getByRole('button', { name: '正在生成...' })).toBeDisabled();
+
+  fireEvent.focus(window);
+
+  expect(onRefresh).not.toHaveBeenCalled();
+  resolveInvite({ inviteCode: 'NEWCODE12345', expiresAt: '2026-07-29T10:00:00.000Z' });
+  expect(await screen.findByText('NEWCODE12345')).toBeInTheDocument();
+});

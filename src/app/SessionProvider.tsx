@@ -78,6 +78,7 @@ export function SessionProvider({
     gateway: AuthGateway,
     session: AuthSession | null,
     version: number,
+    background = false,
   ) => {
     if (version !== requestVersion.current) return;
     if (!session) {
@@ -89,7 +90,7 @@ export function SessionProvider({
       return;
     }
 
-    setState({ status: 'loading' });
+    if (!background) setState({ status: 'loading' });
     try {
       const account = await gateway.loadAccountContext(session.userId);
       if (version !== requestVersion.current) return;
@@ -107,6 +108,7 @@ export function SessionProvider({
       });
     } catch (error) {
       if (version === requestVersion.current) {
+        if (background) throw error;
         setState({ status: 'error', message: errorMessage(error) });
       }
     }
@@ -117,18 +119,21 @@ export function SessionProvider({
     force = false,
   ) => {
     const observedVersion = requestVersion.current;
+    let session: AuthSession | null;
     try {
-      const session = await gateway.restoreSession();
-      if (observedVersion !== requestVersion.current) return;
-      if (!force && sameSession(activeSession.current, session)) return;
-      activeSession.current = session;
-      const version = ++requestVersion.current;
-      await resolveSession(gateway, session, version);
+      session = await gateway.restoreSession();
     } catch (error) {
-      if (observedVersion === requestVersion.current) {
-        setState({ status: 'error', message: errorMessage(error) });
-      }
+      if (observedVersion !== requestVersion.current) return;
+      if (force) throw error;
+      setState({ status: 'error', message: errorMessage(error) });
+      return;
     }
+
+    if (observedVersion !== requestVersion.current) return;
+    if (!force && sameSession(activeSession.current, session)) return;
+    activeSession.current = session;
+    const version = ++requestVersion.current;
+    await resolveSession(gateway, session, version, force);
   }, [resolveSession]);
 
   useEffect(() => {
@@ -144,7 +149,11 @@ export function SessionProvider({
       void resolveSession(gateway, session, version);
     });
     void loadRestoredSession(gateway);
-    return unsubscribe;
+    return () => {
+      ++requestVersion.current;
+      activeSession.current = undefined;
+      unsubscribe();
+    };
   }, [gatewayResult, loadRestoredSession, resolveSession]);
 
   const value = useMemo<SessionValue>(() => {
