@@ -111,3 +111,35 @@ it('keeps the previous paired state and shows a local error when background refr
   expect(screen.getByText('等待对方加入')).toBeInTheDocument();
   expect(screen.queryByText('sensitive backend detail')).not.toBeInTheDocument();
 });
+
+it('clears the old invite and loads a new user when focus restore changes identity before auth event', async () => {
+  const oldSession = { userId: 'old-user', email: 'old@example.com', emailVerified: true };
+  const newSession = { userId: 'new-user', email: 'new@example.com', emailVerified: true };
+  const gateway = new FakeAuthGateway({
+    session: oldSession,
+    accountContext: {
+      displayName: '旧用户',
+      membership: { coupleId: 'old-couple', partnerId: 'her', memberCount: 1 },
+    },
+  });
+  const user = userEvent.setup();
+  render(<App authGateway={gateway} />);
+  await screen.findByText('等待对方加入');
+  await user.click(screen.getByRole('button', { name: '重新生成邀请码' }));
+  expect(await screen.findByText('NEWCODE12345')).toBeInTheDocument();
+
+  const contextResolvers: Array<(context: typeof gateway.accountContext) => void> = [];
+  gateway.loadContext = () => new Promise((resolve) => contextResolvers.push(resolve));
+  gateway.setSession(newSession);
+  fireEvent.focus(window);
+
+  expect(await screen.findByText('正在恢复登录...')).toBeInTheDocument();
+  expect(screen.queryByText('NEWCODE12345')).not.toBeInTheDocument();
+
+  act(() => gateway.emit(newSession));
+  await waitFor(() => expect(contextResolvers).toHaveLength(2));
+  await act(async () => contextResolvers[1]({ displayName: '新用户', membership: null }));
+
+  expect(await screen.findByText('你好，新用户')).toBeInTheDocument();
+  expect(screen.queryByText('NEWCODE12345')).not.toBeInTheDocument();
+});

@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import type { PairingResult } from '../../auth/authGateway';
 import type { PartnerId } from '../../domain/models';
 import { useSignOutAction } from './useSignOutAction';
 
 interface PairingScreenProps {
+  userId: string;
   displayName: string;
   onCreate(identity: PartnerId): Promise<PairingResult>;
   onRedeem(code: string): Promise<PairingResult>;
@@ -40,7 +41,7 @@ function InviteResult({ result }: { result: PairingResult }) {
   );
 }
 
-export function PairingScreen({ displayName, onCreate, onRedeem, onContinue, onSignOut }: PairingScreenProps) {
+export function PairingScreen({ userId, displayName, onCreate, onRedeem, onContinue, onSignOut }: PairingScreenProps) {
   const [mode, setMode] = useState<'choice' | 'create' | 'join'>('choice');
   const [identity, setIdentity] = useState<PartnerId | null>(null);
   const [code, setCode] = useState('');
@@ -48,6 +49,15 @@ export function PairingScreen({ displayName, onCreate, onRedeem, onContinue, onS
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { signingOut, signOutError, runSignOut } = useSignOutAction(onSignOut);
+
+  useEffect(() => {
+    setMode('choice');
+    setIdentity(null);
+    setCode('');
+    setCreated(null);
+    setLoading(false);
+    setError('');
+  }, [userId]);
 
   async function createSpace() {
     if (!identity) {

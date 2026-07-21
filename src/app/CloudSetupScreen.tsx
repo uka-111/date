@@ -3,6 +3,7 @@ import type { InviteResult } from '../auth/authGateway';
 import { useSignOutAction } from '../features/session/useSignOutAction';
 
 interface CloudSetupScreenProps {
+  userId: string;
   displayName: string;
   memberCount: number;
   onRegenerateInvite(): Promise<InviteResult>;
@@ -10,7 +11,7 @@ interface CloudSetupScreenProps {
   onSignOut(): Promise<void> | void;
 }
 
-export function CloudSetupScreen({ displayName, memberCount, onRegenerateInvite, onRefresh, onSignOut }: CloudSetupScreenProps) {
+export function CloudSetupScreen({ userId, displayName, memberCount, onRegenerateInvite, onRefresh, onSignOut }: CloudSetupScreenProps) {
   const [invite, setInvite] = useState<InviteResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -58,6 +59,14 @@ export function CloudSetupScreen({ displayName, memberCount, onRegenerateInvite,
   }, [onRefresh]);
 
   const busy = loading || refreshing || signingOut;
+
+  useEffect(() => {
+    setInvite(null);
+  }, [userId]);
+
+  useEffect(() => {
+    if (memberCount >= 2) setInvite(null);
+  }, [memberCount]);
 
   useEffect(() => {
     if (memberCount !== 1) return;

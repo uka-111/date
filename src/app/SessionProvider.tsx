@@ -80,23 +80,23 @@ export function SessionProvider({
     version: number,
     background = false,
   ) => {
-    if (version !== requestVersion.current) return;
+    if (version !== requestVersion.current) return false;
     if (!session) {
       setState({ status: 'signed_out' });
-      return;
+      return true;
     }
     if (!session.emailVerified) {
       setState({ status: 'verification_required', email: session.email });
-      return;
+      return true;
     }
 
     if (!background) setState({ status: 'loading' });
     try {
       const account = await gateway.loadAccountContext(session.userId);
-      if (version !== requestVersion.current) return;
+      if (version !== requestVersion.current) return false;
       if (!account.membership) {
         setState({ status: 'unpaired', userId: session.userId, displayName: account.displayName });
-        return;
+        return true;
       }
       setState({
         status: 'paired',
@@ -106,11 +106,13 @@ export function SessionProvider({
         partnerId: account.membership.partnerId,
         memberCount: account.membership.memberCount,
       });
+      return true;
     } catch (error) {
       if (version === requestVersion.current) {
         if (background) throw error;
         setState({ status: 'error', message: errorMessage(error) });
       }
+      return false;
     }
   }, []);
 
@@ -130,10 +132,14 @@ export function SessionProvider({
     }
 
     if (observedVersion !== requestVersion.current) return;
-    if (!force && sameSession(activeSession.current, session)) return;
-    activeSession.current = session;
+    const matchesActiveSession = sameSession(activeSession.current, session);
+    if (!force && matchesActiveSession) return;
+    const background = force && matchesActiveSession;
     const version = ++requestVersion.current;
-    await resolveSession(gateway, session, version, force);
+    const resolved = await resolveSession(gateway, session, version, background);
+    if (resolved && version === requestVersion.current) {
+      activeSession.current = session;
+    }
   }, [resolveSession]);
 
   useEffect(() => {

@@ -7,6 +7,7 @@ it('lets a single member regenerate a one-time visible invite', async () => {
   const user = userEvent.setup();
   render(
     <CloudSetupScreen
+      userId="user-a"
       displayName="小雨"
       memberCount={1}
       onRegenerateInvite={vi.fn().mockResolvedValue({
@@ -22,7 +23,7 @@ it('lets a single member regenerate a one-time visible invite', async () => {
 });
 
 it('shows completion and no regenerate action when both members have joined', () => {
-  render(<CloudSetupScreen displayName="小雨" memberCount={2} onRegenerateInvite={vi.fn()} onRefresh={vi.fn()} onSignOut={vi.fn()} />);
+  render(<CloudSetupScreen userId="user-a" displayName="小雨" memberCount={2} onRegenerateInvite={vi.fn()} onRefresh={vi.fn()} onSignOut={vi.fn()} />);
 
   expect(screen.getByText('双方已配对')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: '重新生成邀请码' })).not.toBeInTheDocument();
@@ -35,6 +36,7 @@ it('refreshes membership when the page regains focus', async () => {
     const [memberCount, setMemberCount] = useState(1);
     return (
       <CloudSetupScreen
+        userId="user-a"
         displayName="小雨"
         memberCount={memberCount}
         onRegenerateInvite={vi.fn()}
@@ -61,6 +63,7 @@ it('offers an explicit membership refresh action', async () => {
   const user = userEvent.setup();
   render(
     <CloudSetupScreen
+      userId="user-a"
       displayName="小雨"
       memberCount={1}
       onRegenerateInvite={vi.fn()}
@@ -82,6 +85,7 @@ it('shows pending and a stable error when sign out fails', async () => {
   const user = userEvent.setup();
   render(
     <CloudSetupScreen
+      userId="user-a"
       displayName="小雨"
       memberCount={2}
       onRegenerateInvite={vi.fn()}
@@ -106,6 +110,7 @@ it('does not start a focus refresh while invite regeneration is pending', async 
   const user = userEvent.setup();
   render(
     <CloudSetupScreen
+      userId="user-a"
       displayName="小雨"
       memberCount={1}
       onRegenerateInvite={onRegenerateInvite}
@@ -122,4 +127,26 @@ it('does not start a focus refresh while invite regeneration is pending', async 
   expect(onRefresh).not.toHaveBeenCalled();
   resolveInvite({ inviteCode: 'NEWCODE12345', expiresAt: '2026-07-29T10:00:00.000Z' });
   expect(await screen.findByText('NEWCODE12345')).toBeInTheDocument();
+});
+
+it('clears an in-memory invite when the couple fills or the user changes', async () => {
+  const user = userEvent.setup();
+  const common = {
+    displayName: '小雨',
+    onRegenerateInvite: vi.fn().mockResolvedValue({ inviteCode: 'NEWCODE12345', expiresAt: '2026-07-29T10:00:00.000Z' }),
+    onRefresh: vi.fn(),
+    onSignOut: vi.fn(),
+  };
+  const view = render(<CloudSetupScreen {...common} userId="user-a" memberCount={1} />);
+  await user.click(screen.getByRole('button', { name: '重新生成邀请码' }));
+  expect(await screen.findByText('NEWCODE12345')).toBeInTheDocument();
+
+  view.rerender(<CloudSetupScreen {...common} userId="user-a" memberCount={2} />);
+  view.rerender(<CloudSetupScreen {...common} userId="user-a" memberCount={1} />);
+  expect(screen.queryByText('NEWCODE12345')).not.toBeInTheDocument();
+
+  await user.click(screen.getByRole('button', { name: '重新生成邀请码' }));
+  expect(await screen.findByText('NEWCODE12345')).toBeInTheDocument();
+  view.rerender(<CloudSetupScreen {...common} userId="user-b" memberCount={1} />);
+  expect(screen.queryByText('NEWCODE12345')).not.toBeInTheDocument();
 });

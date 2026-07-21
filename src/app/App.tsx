@@ -18,6 +18,8 @@ function AppContent() {
     case 'unpaired':
       return (
         <PairingScreen
+          key={session.state.userId}
+          userId={session.state.userId}
           displayName={session.state.displayName}
           onCreate={session.createCouple}
           onRedeem={session.redeemInvite}
@@ -28,6 +30,8 @@ function AppContent() {
     case 'paired':
       return (
         <CloudSetupScreen
+          key={session.state.userId}
+          userId={session.state.userId}
           displayName={session.state.displayName}
           memberCount={session.state.memberCount}
           onRegenerateInvite={session.regenerateInvite}
