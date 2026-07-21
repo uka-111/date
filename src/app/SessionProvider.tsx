@@ -45,6 +45,17 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : '操作失败，请稍后再试';
 }
 
+function sameSession(
+  current: AuthSession | null | undefined,
+  next: AuthSession | null,
+) {
+  if (current === undefined) return false;
+  if (current === null || next === null) return current === next;
+  return current.userId === next.userId
+    && current.email === next.email
+    && current.emailVerified === next.emailVerified;
+}
+
 export function SessionProvider({
   children,
   authGateway,
@@ -61,6 +72,7 @@ export function SessionProvider({
   }, [authGateway]);
   const [state, setState] = useState<SessionState>({ status: 'loading' });
   const requestVersion = useRef(0);
+  const activeSession = useRef<AuthSession | null | undefined>(undefined);
 
   const resolveSession = useCallback(async (
     gateway: AuthGateway,
@@ -100,10 +112,16 @@ export function SessionProvider({
     }
   }, []);
 
-  const loadRestoredSession = useCallback(async (gateway: AuthGateway) => {
+  const loadRestoredSession = useCallback(async (
+    gateway: AuthGateway,
+    force = false,
+  ) => {
     const version = ++requestVersion.current;
     try {
       const session = await gateway.restoreSession();
+      if (version !== requestVersion.current) return;
+      if (!force && sameSession(activeSession.current, session)) return;
+      activeSession.current = session;
       await resolveSession(gateway, session, version);
     } catch (error) {
       if (version === requestVersion.current) {
@@ -119,6 +137,8 @@ export function SessionProvider({
     }
     const gateway = gatewayResult.gateway;
     const unsubscribe = gateway.subscribe((session) => {
+      if (sameSession(activeSession.current, session)) return;
+      activeSession.current = session;
       const version = ++requestVersion.current;
       void resolveSession(gateway, session, version);
     });
@@ -137,7 +157,7 @@ export function SessionProvider({
       async signIn(input) {
         const activeGateway = requiredGateway();
         await activeGateway.signIn(input);
-        await loadRestoredSession(activeGateway);
+        await loadRestoredSession(activeGateway, false);
       },
       async signUp(input) {
         const activeGateway = requiredGateway();
@@ -146,7 +166,7 @@ export function SessionProvider({
           ++requestVersion.current;
           setState({ status: 'verification_required', email: input.email.trim() });
         } else {
-          await loadRestoredSession(activeGateway);
+          await loadRestoredSession(activeGateway, false);
         }
         return result;
       },
@@ -154,10 +174,11 @@ export function SessionProvider({
         const activeGateway = requiredGateway();
         ++requestVersion.current;
         await activeGateway.signOut();
+        activeSession.current = null;
         setState({ status: 'signed_out' });
       },
       async reload() {
-        await loadRestoredSession(requiredGateway());
+        await loadRestoredSession(requiredGateway(), true);
       },
       createCouple(identity) {
         return requiredGateway().createCouple(identity);

@@ -21,6 +21,7 @@ export class FakeAuthGateway implements AuthGateway {
   restoreError: Error | null = null;
   signInCalls: SignInInput[] = [];
   signOutCalls = 0;
+  loadAccountContextCalls: string[] = [];
   loadContext?: (userId: string) => Promise<AccountContext>;
 
   constructor(options: FakeOptions = {}) {
@@ -61,6 +62,7 @@ export class FakeAuthGateway implements AuthGateway {
   }
 
   async loadAccountContext(userId: string) {
+    this.loadAccountContextCalls.push(userId);
     return this.loadContext ? this.loadContext(userId) : this.accountContext;
   }
 

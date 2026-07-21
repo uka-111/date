@@ -98,6 +98,36 @@ it('updates when the auth subscription emits a new session', async () => {
   await waitFor(() => expect(result.current.state.status).toBe('unpaired'));
 });
 
+it('ignores a duplicate auth event for the same verified account', async () => {
+  const session = { userId: 'user-a', email: 'a@example.com', emailVerified: true };
+  const gateway = new FakeAuthGateway({
+    session,
+    accountContext: { displayName: '小雨', membership: null },
+  });
+  const { result } = renderHook(useSession, { wrapper: wrapperFor(gateway) });
+  await waitFor(() => expect(result.current.state.status).toBe('unpaired'));
+  expect(gateway.loadAccountContextCalls).toEqual(['user-a']);
+
+  act(() => gateway.emit({ ...session }));
+
+  expect(result.current.state.status).toBe('unpaired');
+  expect(gateway.loadAccountContextCalls).toEqual(['user-a']);
+});
+
+it('processes email verification changes for the same account', async () => {
+  const gateway = new FakeAuthGateway({
+    session: { userId: 'user-a', email: 'a@example.com', emailVerified: false },
+    accountContext: { displayName: '小雨', membership: null },
+  });
+  const { result } = renderHook(useSession, { wrapper: wrapperFor(gateway) });
+  await waitFor(() => expect(result.current.state.status).toBe('verification_required'));
+
+  act(() => gateway.emit({ userId: 'user-a', email: 'a@example.com', emailVerified: true }));
+
+  await waitFor(() => expect(result.current.state.status).toBe('unpaired'));
+  expect(gateway.loadAccountContextCalls).toEqual(['user-a']);
+});
+
 it('signs out and clears the state', async () => {
   const gateway = new FakeAuthGateway({
     session: { userId: 'user-a', email: 'a@example.com', emailVerified: true },
