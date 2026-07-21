@@ -6,7 +6,13 @@ create table public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   display_name text not null
     check (
-      display_name = btrim(display_name)
+      display_name =
+        btrim(
+          left(
+            btrim(regexp_replace(coalesce(display_name, ''), '[[:space:]]+', ' ', 'g')),
+            40
+          )
+        )
       and char_length(display_name) between 1 and 40
     ),
   created_at timestamptz not null default now(),
@@ -15,14 +21,14 @@ create table public.profiles (
 
 create table public.couples (
   id uuid primary key default gen_random_uuid(),
-  created_by uuid not null references public.profiles (id) on delete restrict,
+  created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 create table public.couple_members (
   couple_id uuid not null references public.couples (id) on delete cascade,
-  user_id uuid not null unique references public.profiles (id) on delete restrict,
+  user_id uuid not null unique references public.profiles (id) on delete cascade,
   identity public.partner_identity not null,
   joined_at timestamptz not null default now(),
   primary key (couple_id, user_id),
@@ -33,16 +39,17 @@ create table public.couple_invites (
   id uuid primary key default gen_random_uuid(),
   couple_id uuid not null references public.couples (id) on delete cascade,
   code_hash text not null unique,
-  created_by uuid not null references public.profiles (id) on delete restrict,
+  created_by uuid references public.profiles (id) on delete set null,
   expires_at timestamptz not null,
   used_at timestamptz,
-  used_by uuid references public.profiles (id) on delete restrict,
+  revoked_at timestamptz,
+  used_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now()
 );
 
 create unique index couple_invites_one_unused_per_couple_idx
   on public.couple_invites (couple_id)
-  where used_at is null;
+  where used_at is null and revoked_at is null;
 
 create or replace function public.handle_new_user_profile()
 returns trigger
@@ -53,13 +60,43 @@ as $$
 declare
   v_display_name text;
 begin
-  v_display_name := nullif(btrim(coalesce(new.raw_user_meta_data ->> 'display_name', '')), '');
+  v_display_name := nullif(
+    btrim(
+      left(
+        btrim(
+          regexp_replace(
+            coalesce(new.raw_user_meta_data ->> 'display_name', ''),
+            '[[:space:]]+',
+            ' ',
+            'g'
+          )
+        ),
+        40
+      )
+    ),
+    ''
+  );
 
   if v_display_name is null then
-    v_display_name := nullif(btrim(split_part(coalesce(new.email, ''), '@', 1)), '');
+    v_display_name := nullif(
+      btrim(
+        left(
+          btrim(
+            regexp_replace(
+              split_part(coalesce(new.email, ''), '@', 1),
+              '[[:space:]]+',
+              ' ',
+              'g'
+            )
+          ),
+          40
+        )
+      ),
+      ''
+    );
   end if;
 
-  v_display_name := left(coalesce(v_display_name, 'User'), 40);
+  v_display_name := coalesce(v_display_name, 'User');
 
   insert into public.profiles (id, display_name)
   values (new.id, v_display_name);
@@ -74,6 +111,37 @@ grant execute on function public.handle_new_user_profile() to supabase_auth_admi
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user_profile();
+
+create or replace function public.delete_empty_couple_after_member_delete()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+begin
+  perform 1
+  from public.couples as c
+  where c.id = old.couple_id
+  for update;
+
+  delete from public.couples as c
+  where c.id = old.couple_id
+    and not exists (
+      select 1
+      from public.couple_members as cm
+      where cm.couple_id = old.couple_id
+    );
+
+  return old;
+end;
+$$;
+
+revoke all on function public.delete_empty_couple_after_member_delete()
+  from public, anon, authenticated;
+
+create trigger delete_empty_couple_after_member_delete
+  after delete on public.couple_members
+  for each row execute function public.delete_empty_couple_after_member_delete();
 
 create or replace function public.current_couple_id()
 returns uuid
@@ -186,9 +254,10 @@ begin
   values (v_couple_id, v_user_id, p_identity);
 
   update public.couple_invites as ci
-  set used_at = now()
+  set revoked_at = now()
   where ci.couple_id = v_couple_id
-    and ci.used_at is null;
+    and ci.used_at is null
+    and ci.revoked_at is null;
 
   loop
     v_random_bytes := extensions.gen_random_bytes(12);
@@ -276,9 +345,10 @@ begin
   end if;
 
   update public.couple_invites as ci
-  set used_at = now()
+  set revoked_at = now()
   where ci.couple_id = v_couple_id
-    and ci.used_at is null;
+    and ci.used_at is null
+    and ci.revoked_at is null;
 
   loop
     v_random_bytes := extensions.gen_random_bytes(12);
@@ -336,6 +406,7 @@ declare
   v_couple_id uuid;
   v_expires_at timestamptz;
   v_used_at timestamptz;
+  v_revoked_at timestamptz;
   v_existing_identity public.partner_identity;
   v_new_identity public.partner_identity;
   v_member_count integer;
@@ -347,7 +418,7 @@ begin
   v_normalized_code := upper(btrim(coalesce(p_invite_code, '')));
 
   if char_length(v_normalized_code) <> 12 then
-    raise exception 'Invalid invite code';
+    raise exception 'Invite code unavailable';
   end if;
 
   perform pg_advisory_xact_lock(hashtextextended(v_user_id::text, 0));
@@ -360,6 +431,14 @@ begin
     raise exception 'User already belongs to a couple';
   end if;
 
+  if not exists (
+    select 1
+    from public.profiles as p
+    where p.id = v_user_id
+  ) then
+    raise exception 'Invite code unavailable';
+  end if;
+
   v_code_hash := encode(extensions.digest(v_normalized_code, 'sha256'), 'hex');
 
   select ci.id, ci.couple_id
@@ -368,7 +447,7 @@ begin
   where ci.code_hash = v_code_hash;
 
   if v_invite_id is null then
-    raise exception 'Invite code not found';
+    raise exception 'Invite code unavailable';
   end if;
 
   perform 1
@@ -376,8 +455,12 @@ begin
   where c.id = v_couple_id
   for update;
 
-  select ci.expires_at, ci.used_at
-  into v_expires_at, v_used_at
+  if not found then
+    raise exception 'Invite code unavailable';
+  end if;
+
+  select ci.expires_at, ci.used_at, ci.revoked_at
+  into v_expires_at, v_used_at, v_revoked_at
   from public.couple_invites as ci
   where ci.id = v_invite_id
     and ci.couple_id = v_couple_id
@@ -385,15 +468,14 @@ begin
   for update;
 
   if not found then
-    raise exception 'Invite code not found';
+    raise exception 'Invite code unavailable';
   end if;
 
-  if v_used_at is not null then
-    raise exception 'Invite code has already been used';
-  end if;
-
-  if v_expires_at <= now() then
-    raise exception 'Invite code has expired';
+  if v_used_at is not null
+    or v_revoked_at is not null
+    or v_expires_at <= now()
+  then
+    raise exception 'Invite code unavailable';
   end if;
 
   select count(*)::integer, min(cm.identity::text)::public.partner_identity
@@ -402,11 +484,11 @@ begin
   where cm.couple_id = v_couple_id;
 
   if v_member_count >= 2 then
-    raise exception 'Couple already has two members';
+    raise exception 'Invite code unavailable';
   end if;
 
   if v_member_count <> 1 or v_existing_identity is null then
-    raise exception 'Couple does not have a valid founding member';
+    raise exception 'Invite code unavailable';
   end if;
 
   v_new_identity := case v_existing_identity
