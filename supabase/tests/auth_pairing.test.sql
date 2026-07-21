@@ -160,15 +160,14 @@ insert into pairing_test_state (key, couple_id, invite_code, expires_at)
 select 'a_initial', couple_id, invite_code, expires_at
 from public.create_couple_with_invite('him');
 
-select is(
-  (select char_length(invite_code) from pairing_test_state where key = 'a_initial'),
-  12,
-  'A receives a 12-character invite code'
-);
-
 select ok(
-  (select invite_code ~ '^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{12}$' from pairing_test_state where key = 'a_initial'),
-  'A receives an uppercase unambiguous invite code'
+  (
+    select char_length(invite_code) = 12
+      and invite_code ~ '^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{12}$'
+    from pairing_test_state
+    where key = 'a_initial'
+  ),
+  'A receives a 12-character uppercase unambiguous invite code'
 );
 
 select ok(
@@ -208,28 +207,18 @@ select is(
   'A keeps the selected identity'
 );
 
-select is(
+select ok(
   (
-    select char_length(code_hash)
+    select char_length(code_hash) = 64
+      and code_hash = (
+        select encode(digest(invite_code, 'sha256'), 'hex')
+        from pairing_test_state
+        where key = 'a_initial'
+      )
     from public.couple_invites
     where couple_id = (select couple_id from pairing_test_state where key = 'a_initial')
   ),
-  64,
-  'the database stores a 64-character SHA256 hash'
-);
-
-select is(
-  (
-    select code_hash
-    from public.couple_invites
-    where couple_id = (select couple_id from pairing_test_state where key = 'a_initial')
-  ),
-  (
-    select encode(digest(invite_code, 'sha256'), 'hex')
-    from pairing_test_state
-    where key = 'a_initial'
-  ),
-  'the stored invite hash matches the returned plaintext code'
+  'the database stores the matching 64-character SHA256 invite hash'
 );
 
 select is(
@@ -361,16 +350,14 @@ from public.redeem_couple_invite(
   (select invite_code from pairing_test_state where key = 'a_regenerated_twice')
 );
 
-select is(
-  (select couple_id from pairing_test_state where key = 'b_redeem'),
-  (select couple_id from pairing_test_state where key = 'a_initial'),
-  'B redeems the new code into A couple'
-);
-
-select is(
-  (select identity::text from pairing_test_state where key = 'b_redeem'),
-  'her',
-  'B receives the opposite identity'
+select ok(
+  (
+    select couple_id = (select couple_id from pairing_test_state where key = 'a_initial')
+      and identity = 'her'::public.partner_identity
+    from pairing_test_state
+    where key = 'b_redeem'
+  ),
+  'B redeems the new code into A couple with the opposite identity'
 );
 
 reset role;
@@ -436,18 +423,50 @@ select throws_ok(
 );
 
 reset role;
+
+insert into public.couple_invites (
+  couple_id,
+  code_hash,
+  created_by,
+  expires_at
+)
+values (
+  (select couple_id from pairing_test_state where key = 'a_initial'),
+  encode(digest('FULLCOUPLE01', 'sha256'), 'hex'),
+  '00000000-0000-0000-0000-0000000000a1',
+  now() + interval '7 days'
+);
+
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c3', true);
 set local role authenticated;
 
 select throws_ok(
-  format(
-    'select * from public.redeem_couple_invite(%L)',
-    (select invite_code from pairing_test_state where key = 'a_regenerated_twice')
-  ),
+  $$select * from public.redeem_couple_invite('FULLCOUPLE01')$$,
   'P0001',
   'Invite code unavailable',
-  'C cannot join as a third member and receives the unified error'
+  'C cannot join a full couple with an otherwise available invite'
 );
+
+reset role;
+
+select ok(
+  (
+    select
+      (
+        select count(*) = 2
+        from public.couple_members
+        where couple_id = (select couple_id from pairing_test_state where key = 'a_initial')
+      )
+      and used_at is null
+      and used_by is null
+    from public.couple_invites
+    where code_hash = encode(digest('FULLCOUPLE01', 'sha256'), 'hex')
+  ),
+  'a failed third-member redemption leaves two members and the invite unused'
+);
+
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c3', true);
+set local role authenticated;
 
 select throws_ok(
   $$select * from public.redeem_couple_invite('short')$$,
@@ -635,8 +654,8 @@ select is(
 );
 
 -- pgTAP runs this file in one connection, so it cannot create a reliable
--- simultaneous redeem race. These assertions prove the two database guards
--- used by redeem_couple_invite: uniqueness constraints and transaction locks.
+-- simultaneous redeem race. These assertions prove the uniqueness constraints
+-- and the exact transaction-lock statements used by the pairing functions.
 select ok(
   exists (
     select 1
@@ -660,19 +679,75 @@ select ok(
 );
 
 select ok(
-  position(
-    'pg_advisory_xact_lock'
-    in pg_get_functiondef('public.redeem_couple_invite(text)'::regprocedure)
-  ) > 0,
-  'redeem serializes attempts by authenticated user with an advisory lock'
+  (
+    select normalized_definition ~
+      'perform[[:space:]]+pg_advisory_xact_lock[[:space:]]*\([[:space:]]*hashtextextended[[:space:]]*\([[:space:]]*v_user_id::text[[:space:]]*,[[:space:]]*0[[:space:]]*\)[[:space:]]*\)'
+    from (
+      select lower(
+        regexp_replace(
+          pg_get_functiondef('public.create_couple_with_invite(public.partner_identity)'::regprocedure),
+          '[[:space:]]+',
+          ' ',
+          'g'
+        )
+      ) as normalized_definition
+    ) as function_definition
+  ),
+  'create serializes the authenticated user with the expected advisory transaction lock key'
 );
 
 select ok(
-  position(
-    'FOR UPDATE'
-    in upper(pg_get_functiondef('public.redeem_couple_invite(text)'::regprocedure))
-  ) > 0,
-  'redeem locks the couple and invite rows before membership insertion'
+  (
+    select normalized_definition ~
+      'perform[[:space:]]+1[[:space:]]+from[[:space:]]+public\.couples[[:space:]]+as[[:space:]]+c[[:space:]]+where[[:space:]]+c\.id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+for[[:space:]]+update'
+    from (
+      select lower(
+        regexp_replace(
+          pg_get_functiondef('public.regenerate_couple_invite()'::regprocedure),
+          '[[:space:]]+',
+          ' ',
+          'g'
+        )
+      ) as normalized_definition
+    ) as function_definition
+  ),
+  'regenerate locks the selected public.couples row before counting members'
+);
+
+select ok(
+  (
+    select normalized_definition ~
+      'perform[[:space:]]+1[[:space:]]+from[[:space:]]+public\.couples[[:space:]]+as[[:space:]]+c[[:space:]]+where[[:space:]]+c\.id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+for[[:space:]]+update'
+    from (
+      select lower(
+        regexp_replace(
+          pg_get_functiondef('public.redeem_couple_invite(text)'::regprocedure),
+          '[[:space:]]+',
+          ' ',
+          'g'
+        )
+      ) as normalized_definition
+    ) as function_definition
+  ),
+  'redeem locks the selected public.couples row before validating capacity'
+);
+
+select ok(
+  (
+    select normalized_definition ~
+      'select[[:space:]]+ci\.expires_at[[:space:]]*,[[:space:]]*ci\.used_at[[:space:]]*,[[:space:]]*ci\.revoked_at[[:space:]]+into[[:space:]]+v_expires_at[[:space:]]*,[[:space:]]*v_used_at[[:space:]]*,[[:space:]]*v_revoked_at[[:space:]]+from[[:space:]]+public\.couple_invites[[:space:]]+as[[:space:]]+ci[[:space:]]+where[[:space:]]+ci\.id[[:space:]]*=[[:space:]]*v_invite_id[[:space:]]+and[[:space:]]+ci\.couple_id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+and[[:space:]]+ci\.code_hash[[:space:]]*=[[:space:]]*v_code_hash[[:space:]]+for[[:space:]]+update'
+    from (
+      select lower(
+        regexp_replace(
+          pg_get_functiondef('public.redeem_couple_invite(text)'::regprocedure),
+          '[[:space:]]+',
+          ' ',
+          'g'
+        )
+      ) as normalized_definition
+    ) as function_definition
+  ),
+  'redeem locks the selected public.couple_invites row by invite id before consuming it'
 );
 
 select * from finish();
