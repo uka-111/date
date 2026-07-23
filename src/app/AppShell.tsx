@@ -36,7 +36,7 @@ export function AppShell({
             onClick={onNotificationClick}
           />
           <button className="text-button" type="button" onClick={onSignOut}>
-            切换身份
+            退出账号
           </button>
         </div>
       </header>

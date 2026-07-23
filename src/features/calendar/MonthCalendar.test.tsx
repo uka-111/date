@@ -6,6 +6,21 @@ import { invitationBuilder } from '../../test/builders';
 
 beforeEach(() => {
   localStorage.clear();
+  sessionStorage.clear();
+});
+
+it('updates the date marker when a refreshed repository contains a confirmed invitation', () => {
+  const pendingRepository = createLocalRepository(localStorage);
+  const confirmedRepository = createLocalRepository(sessionStorage);
+  pendingRepository.saveInvitation(invitationBuilder({ status: 'pending' }));
+  confirmedRepository.saveInvitation(invitationBuilder({ status: 'confirmed' }));
+
+  const view = render(<MonthCalendar initialMonth="2026-07" repository={pendingRepository} partnerId="him" />);
+  expect(screen.getByRole('button', { name: '7月25日' })).toHaveAttribute('data-primary-state', 'none');
+
+  view.rerender(<MonthCalendar initialMonth="2026-07" repository={confirmedRepository} partnerId="him" />);
+
+  expect(screen.getByRole('button', { name: '7月25日' })).toHaveAttribute('data-primary-state', 'confirmed');
 });
 
 it('shows confirmed fill and both availability markers on the same date', () => {

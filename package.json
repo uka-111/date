@@ -11,6 +11,7 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.7",
     "date-fns": "latest",
     "react": "latest",
     "react-dom": "latest",
@@ -25,6 +26,7 @@
     "@types/react-dom": "latest",
     "@vitejs/plugin-react": "latest",
     "jsdom": "latest",
+    "supabase": "^2.109.1",
     "typescript": "latest",
     "vite": "latest",
     "vitest": "latest"
