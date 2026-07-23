@@ -3,9 +3,14 @@ import { AuthScreen } from '../features/session/AuthScreen';
 import { PairingScreen } from '../features/session/PairingScreen';
 import { VerifyEmailScreen } from '../features/session/VerifyEmailScreen';
 import { CloudSetupScreen } from './CloudSetupScreen';
+import { BookingDataScreen } from './BookingDataScreen';
+import type { DateBookingRepository } from './bookingRepository';
 import { SessionProvider, useSession } from './SessionProvider';
+import { createSupabaseBookingRepository } from '../storage/supabaseBookingRepository';
+import { getSupabaseBrowserRuntime } from '../lib/supabaseClient';
+import { BrowserRouter } from 'react-router-dom';
 
-function AppContent() {
+function AppContent({ bookingRepositoryFactory }: { bookingRepositoryFactory?: (coupleId: string, userId: string) => DateBookingRepository }) {
   const session = useSession();
 
   switch (session.state.status) {
@@ -28,6 +33,12 @@ function AppContent() {
         />
       );
     case 'paired':
+      if (session.state.memberCount === 2) {
+        const repository = bookingRepositoryFactory
+          ? bookingRepositoryFactory(session.state.coupleId, session.state.userId)
+          : createSupabaseBookingRepository(getSupabaseBrowserRuntime().client, session.state.coupleId, session.state.userId);
+        return <BookingDataScreen key={session.state.userId} repository={repository} displayName={session.state.displayName} partnerId={session.state.partnerId} onSignOut={session.signOut} />;
+      }
       return (
         <CloudSetupScreen
           key={session.state.userId}
@@ -44,10 +55,12 @@ function AppContent() {
   }
 }
 
-export function App({ authGateway }: { authGateway?: AuthGateway }) {
+export function App({ authGateway, bookingRepositoryFactory }: { authGateway?: AuthGateway; bookingRepositoryFactory?: (coupleId: string, userId: string) => DateBookingRepository }) {
   return (
     <SessionProvider authGateway={authGateway}>
-      <AppContent />
+      <BrowserRouter>
+        <AppContent bookingRepositoryFactory={bookingRepositoryFactory} />
+      </BrowserRouter>
     </SessionProvider>
   );
 }

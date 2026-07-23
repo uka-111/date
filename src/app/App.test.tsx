@@ -1,20 +1,22 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FakeAuthGateway } from '../test/fakeAuthGateway';
+import { createFakeBookingRepository } from '../test/fakeBookingRepository';
 import { App } from './App';
+
+const fakeBookingRepositoryFactory = () => createFakeBookingRepository();
 
 it('routes every session state without opening local calendar data', async () => {
   const cases = [
     { gateway: new FakeAuthGateway(), text: '留一页给我们' },
     { gateway: new FakeAuthGateway({ session: { userId: 'u1', email: 'a@example.com', emailVerified: false } }), text: 'a@example.com' },
     { gateway: new FakeAuthGateway({ session: { userId: 'u1', email: 'a@example.com', emailVerified: true }, accountContext: { displayName: '小雨', membership: null } }), text: '创建我们的空间' },
-    { gateway: new FakeAuthGateway({ session: { userId: 'u1', email: 'a@example.com', emailVerified: true }, accountContext: { displayName: '小雨', membership: { coupleId: 'c1', partnerId: 'him' as const, memberCount: 2 } } }), text: '双方已配对' },
+    { gateway: new FakeAuthGateway({ session: { userId: 'u1', email: 'a@example.com', emailVerified: true }, accountContext: { displayName: '小雨', membership: { coupleId: 'c1', partnerId: 'him' as const, memberCount: 2 } } }), text: '共享月历' },
   ];
 
   for (const value of cases) {
-    const view = render(<App authGateway={value.gateway} />);
+    const view = render(<App authGateway={value.gateway} bookingRepositoryFactory={fakeBookingRepositoryFactory} />);
     expect(await screen.findByText(value.text)).toBeInTheDocument();
-    expect(screen.queryByText('共享日历')).not.toBeInTheDocument();
     view.unmount();
   }
 });
@@ -22,7 +24,7 @@ it('routes every session state without opening local calendar data', async () =>
 it('renders stable configuration errors instead of throwing', async () => {
   const gateway = new FakeAuthGateway();
   gateway.restoreError = new Error('Supabase 连接信息尚未配置');
-  render(<App authGateway={gateway} />);
+  render(<App authGateway={gateway} bookingRepositoryFactory={fakeBookingRepositoryFactory} />);
 
   expect(await screen.findByRole('alert')).toHaveTextContent('Supabase 连接信息尚未配置');
 });
@@ -69,7 +71,7 @@ it('keeps the paired screen and invite mounted during a background membership re
     },
   });
   const user = userEvent.setup();
-  render(<App authGateway={gateway} />);
+  render(<App authGateway={gateway} bookingRepositoryFactory={fakeBookingRepositoryFactory} />);
   await screen.findByText('等待对方加入');
   await user.click(screen.getByRole('button', { name: '重新生成邀请码' }));
   expect(await screen.findByText('NEWCODE12345')).toBeInTheDocument();
@@ -90,7 +92,7 @@ it('keeps the paired screen and invite mounted during a background membership re
     displayName: '小雨',
     membership: { coupleId: 'couple-1', partnerId: 'her', memberCount: 2 },
   }));
-  expect(await screen.findByText('双方已配对')).toBeInTheDocument();
+  expect(await screen.findByRole('grid', { name: '共享月历' })).toBeInTheDocument();
 });
 
 it('keeps the previous paired state and shows a local error when background refresh fails', async () => {
