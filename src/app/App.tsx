@@ -58,7 +58,7 @@ function AppContent({ bookingRepositoryFactory }: { bookingRepositoryFactory?: (
 export function App({ authGateway, bookingRepositoryFactory }: { authGateway?: AuthGateway; bookingRepositoryFactory?: (coupleId: string, userId: string) => DateBookingRepository }) {
   return (
     <SessionProvider authGateway={authGateway}>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <AppContent bookingRepositoryFactory={bookingRepositoryFactory} />
       </BrowserRouter>
     </SessionProvider>
