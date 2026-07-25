@@ -30,7 +30,7 @@ jobs:
       - name: Run tests
         run: npm test
       - name: Build site
-        run: npm run build
+        run: npm run build -- --mode github-pages
       - name: Add SPA fallback
         run: cp dist/index.html dist/404.html
       - name: Configure Pages
