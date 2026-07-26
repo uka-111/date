@@ -713,12 +713,12 @@ select is(
 select ok(
   exists (
     select 1
-    from pg_constraint
-    where conrelid = 'public.couple_members'::regclass
-      and contype = 'u'
-      and pg_get_constraintdef(oid) = 'UNIQUE (user_id)'
+    from pg_indexes
+    where schemaname = 'public'
+      and tablename = 'couple_members'
+      and indexname = 'couple_members_one_active_per_user_idx'
   ),
-  'concurrent redemption is guarded by unique membership per user'
+  'concurrent redemption is guarded by one active membership per user'
 );
 
 select ok(

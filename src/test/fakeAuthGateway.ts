@@ -79,4 +79,8 @@ export class FakeAuthGateway implements AuthGateway {
   async regenerateInvite(): Promise<InviteResult> {
     return { inviteCode: 'NEWCODE12345', expiresAt: new Date().toISOString() };
   }
+
+  async leaveCurrentCouple() {
+    this.accountContext = { ...this.accountContext, membership: null };
+  }
 }

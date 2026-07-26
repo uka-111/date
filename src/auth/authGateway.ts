@@ -51,4 +51,5 @@ export interface AuthGateway {
   createCouple(identity: PartnerId): Promise<PairingResult>;
   redeemInvite(code: string): Promise<PairingResult>;
   regenerateInvite(): Promise<InviteResult>;
+  leaveCurrentCouple(): Promise<void>;
 }

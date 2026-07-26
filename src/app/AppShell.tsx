@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import type { PartnerId } from '../domain/models';
 import { NotificationBell } from '../features/notifications/NotificationBell';
@@ -9,6 +9,7 @@ interface AppShellProps {
   notifications: NotificationRecord[];
   onNotificationClick: () => void;
   onSignOut: () => void;
+  onLeaveCouple?: () => Promise<void>;
   children: ReactNode;
 }
 
@@ -17,6 +18,7 @@ export function AppShell({
   notifications,
   onNotificationClick,
   onSignOut,
+  onLeaveCouple = async () => {},
   children,
 }: AppShellProps) {
   return (
@@ -38,6 +40,7 @@ export function AppShell({
           <button className="text-button" type="button" onClick={onSignOut}>
             退出账号
           </button>
+          <LeaveCoupleButton onLeaveCouple={onLeaveCouple} />
         </div>
       </header>
 
@@ -59,4 +62,29 @@ export function AppShell({
       <main className="page-container">{children}</main>
     </div>
   );
+}
+
+function LeaveCoupleButton({ onLeaveCouple }: { onLeaveCouple: () => Promise<void> }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function leave() {
+    if (!window.confirm('确定取消配对吗？历史日历、预约、照片和文字记录会保留；以后你们重新配对时可以恢复这些内容。')) return;
+    setBusy(true);
+    setError('');
+    try {
+      await onLeaveCouple();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : '取消配对失败，请稍后再试');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <span className="leave-couple-control">
+    <button className="text-button danger-text-button" type="button" disabled={busy} onClick={() => void leave()}>
+      {busy ? '正在取消配对...' : '取消配对'}
+    </button>
+    {error && <span role="alert">{error}</span>}
+  </span>;
 }

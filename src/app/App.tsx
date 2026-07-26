@@ -37,7 +37,7 @@ function AppContent({ bookingRepositoryFactory }: { bookingRepositoryFactory?: (
         const repository = bookingRepositoryFactory
           ? bookingRepositoryFactory(session.state.coupleId, session.state.userId)
           : createSupabaseBookingRepository(getSupabaseBrowserRuntime().client, session.state.coupleId, session.state.userId);
-        return <BookingDataScreen key={session.state.userId} repository={repository} displayName={session.state.displayName} partnerId={session.state.partnerId} onSignOut={session.signOut} />;
+        return <BookingDataScreen key={session.state.userId} repository={repository} displayName={session.state.displayName} partnerId={session.state.partnerId} onSignOut={session.signOut} onLeaveCouple={session.leaveCurrentCouple} />;
       }
       return (
         <CloudSetupScreen
@@ -47,6 +47,7 @@ function AppContent({ bookingRepositoryFactory }: { bookingRepositoryFactory?: (
           memberCount={session.state.memberCount}
           onRegenerateInvite={session.regenerateInvite}
           onRefresh={session.reload}
+          onLeaveCouple={session.leaveCurrentCouple}
           onSignOut={session.signOut}
         />
       );
