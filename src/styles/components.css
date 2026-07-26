@@ -61,6 +61,28 @@
   box-shadow: 0 6px 20px rgba(103, 66, 55, 0.08);
 }
 
+.danger-text-button {
+  color: #a33f4b;
+}
+
+.danger-text-button:hover:not(:disabled),
+.danger-text-button:focus-visible {
+  background: #fff0f1;
+  color: #8b2635;
+}
+
+.leave-couple-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.leave-couple-control [role='alert'] {
+  max-width: 180px;
+  color: #a33f4b;
+  font-size: 0.75rem;
+}
+
 .page-container {
   width: min(var(--content-width), calc(100% - 24px));
   margin: 0 auto;

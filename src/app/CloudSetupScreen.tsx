@@ -8,10 +8,11 @@ interface CloudSetupScreenProps {
   memberCount: number;
   onRegenerateInvite(): Promise<InviteResult>;
   onRefresh(): Promise<void>;
+  onLeaveCouple?(): Promise<void>;
   onSignOut(): Promise<void> | void;
 }
 
-export function CloudSetupScreen({ userId, displayName, memberCount, onRegenerateInvite, onRefresh, onSignOut }: CloudSetupScreenProps) {
+export function CloudSetupScreen({ userId, displayName, memberCount, onRegenerateInvite, onRefresh, onLeaveCouple = async () => {}, onSignOut }: CloudSetupScreenProps) {
   const [invite, setInvite] = useState<InviteResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -60,6 +61,19 @@ export function CloudSetupScreen({ userId, displayName, memberCount, onRegenerat
 
   const busy = loading || refreshing || signingOut;
 
+  async function leaveCouple() {
+    if (!window.confirm('确定取消配对吗？历史内容会保留，之后你们重新配对时可以恢复。')) return;
+    setError('');
+    setRefreshing(true);
+    try {
+      await onLeaveCouple();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : '取消配对失败，请稍后再试');
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   useEffect(() => {
     setInvite(null);
   }, [userId]);
@@ -96,6 +110,7 @@ export function CloudSetupScreen({ userId, displayName, memberCount, onRegenerat
         )}
         {error && <p role="alert">{error}</p>}
         {signOutError && <p role="alert">{signOutError}</p>}
+        <button className="quiet-action danger-text-button" type="button" disabled={busy} onClick={() => void leaveCouple()}>{refreshing ? '正在取消配对...' : '取消配对'}</button>
         <button className="quiet-action" type="button" disabled={busy} onClick={() => void runSignOut()}>{signingOut ? '正在退出...' : '退出账号'}</button>
       </section>
     </main>

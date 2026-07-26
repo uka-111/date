@@ -63,8 +63,8 @@ it('loads profile, membership and member count from database data', async () => 
     if (table === 'profiles') return { select: () => ({ eq: () => ({ single: profileSingle }) }) };
     if (table === 'couple_members') {
       const call = client.from.mock.calls.filter(([name]) => name === 'couple_members').length;
-      if (call === 1) return { select: () => ({ eq: () => ({ maybeSingle: membershipSingle }) }) };
-      return { select: () => ({ eq: countEq }) };
+      if (call === 1) return { select: () => ({ eq: () => ({ is: () => ({ maybeSingle: membershipSingle }) }) }) };
+      return { select: () => ({ eq: () => ({ is: countEq }) }) };
     }
     throw new Error('unexpected table');
   });
@@ -84,4 +84,14 @@ it('maps RPC snake_case results and stable invite errors', async () => {
 
   await expect(gateway.createCouple('him')).resolves.toEqual({ coupleId: 'c1', partnerId: 'him', inviteCode: 'CODE12345678', expiresAt: 'later' });
   await expect(gateway.redeemInvite('BAD')).rejects.toThrow('邀请码不可用或已失效');
+});
+
+it('calls the leave-current-couple RPC', async () => {
+  const { client } = mockClient();
+  client.rpc.mockResolvedValue({ data: null, error: null });
+  const gateway = createSupabaseAuthGateway(client as never, new BrowserAuthStorage());
+
+  await gateway.leaveCurrentCouple();
+
+  expect(client.rpc).toHaveBeenCalledWith('leave_current_couple');
 });

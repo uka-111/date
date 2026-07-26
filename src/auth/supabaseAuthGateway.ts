@@ -121,6 +121,7 @@ export function createSupabaseAuthGateway(
         .from('couple_members')
         .select('couple_id, identity')
         .eq('user_id', userId)
+        .is('left_at', null)
         .maybeSingle();
       if (membershipResponse.error) throw stableError(membershipResponse.error);
       if (!membershipResponse.data) {
@@ -130,7 +131,8 @@ export function createSupabaseAuthGateway(
       const countResponse = await client
         .from('couple_members')
         .select('*', { count: 'exact', head: true })
-        .eq('couple_id', membershipResponse.data.couple_id);
+        .eq('couple_id', membershipResponse.data.couple_id)
+        .is('left_at', null);
       if (countResponse.error) throw stableError(countResponse.error);
 
       return {
@@ -164,6 +166,11 @@ export function createSupabaseAuthGateway(
       const response = await client.rpc('regenerate_couple_invite');
       const row = requireData(response.data?.[0] ?? null, response.error);
       return { inviteCode: row.invite_code, expiresAt: row.expires_at };
+    },
+
+    async leaveCurrentCouple() {
+      const { error } = await client.rpc('leave_current_couple');
+      if (error) throw stableError(error);
     },
   };
 }
