@@ -24,7 +24,7 @@ export function InvitationRoute({ partnerId, repository, onChanged }: { partnerI
   );
 }
 
-export function BookingDataScreen({ repository, displayName, partnerId, onSignOut, onLeaveCouple }: { repository: DateBookingRepository; displayName: string; partnerId: PartnerId; onSignOut: () => void; onLeaveCouple: () => Promise<void> }) {
+export function BookingDataScreen({ repository, displayName, email, partnerId, onSignOut, onLeaveCouple, onUpdateDisplayName, onUpdateEmail, onUpdatePassword }: { repository: DateBookingRepository; displayName: string; email: string; partnerId: PartnerId; onSignOut: () => void; onLeaveCouple: () => Promise<void>; onUpdateDisplayName: (name: string) => Promise<string>; onUpdateEmail: (email: string) => Promise<void>; onUpdatePassword: (password: string) => Promise<void> }) {
   const { state, reload } = useCloudBookingData(repository);
   const [syncError, setSyncError] = useState('');
   const navigate = useNavigate();
@@ -41,7 +41,7 @@ export function BookingDataScreen({ repository, displayName, partnerId, onSignOu
     setSyncError,
   );
 
-  return <AppShell partnerId={partnerId} notifications={state.snapshot.notifications} onNotificationClick={() => setShowNotifications((visible) => !visible)} onSignOut={onSignOut} onLeaveCouple={onLeaveCouple}>
+  return <AppShell partnerId={partnerId} displayName={displayName} email={email} notifications={state.snapshot.notifications} onNotificationClick={() => setShowNotifications((visible) => !visible)} onSignOut={onSignOut} onLeaveCouple={onLeaveCouple} onUpdateDisplayName={onUpdateDisplayName} onUpdateEmail={onUpdateEmail} onUpdatePassword={onUpdatePassword}>
       {showNotifications && <aside className="notification-panel card" aria-label="提醒"><h2>提醒</h2><NotificationList partnerId={partnerId} notifications={state.snapshot.notifications} onOpen={(notification) => {
         legacyRepository.markNotificationRead(notification.id, partnerId, new Date().toISOString());
         setShowNotifications(false); navigate(`/invitations/${notification.invitationId}`);

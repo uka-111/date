@@ -10,6 +10,7 @@ import {
 } from 'react';
 import type {
   AuthGateway,
+  AuthEvent,
   AuthSession,
   InviteResult,
   PairingResult,
@@ -24,8 +25,9 @@ export type SessionState =
   | { status: 'loading' }
   | { status: 'signed_out' }
   | { status: 'verification_required'; email: string }
+  | { status: 'password_recovery'; userId: string }
   | { status: 'unpaired'; userId: string; displayName: string }
-  | { status: 'paired'; userId: string; displayName: string; coupleId: string; partnerId: PartnerId; memberCount: number }
+  | { status: 'paired'; userId: string; email: string; displayName: string; coupleId: string; partnerId: PartnerId; memberCount: number }
   | { status: 'error'; message: string };
 
 interface SessionValue {
@@ -38,6 +40,10 @@ interface SessionValue {
   redeemInvite(code: string): Promise<PairingResult>;
   regenerateInvite(): Promise<InviteResult>;
   leaveCurrentCouple(): Promise<void>;
+  requestPasswordReset(email: string): Promise<void>;
+  updatePassword(password: string): Promise<void>;
+  updateDisplayName(displayName: string): Promise<string>;
+  updateEmail(email: string): Promise<void>;
 }
 
 const SessionContext = createContext<SessionValue | null>(null);
@@ -74,6 +80,7 @@ export function SessionProvider({
   const [state, setState] = useState<SessionState>({ status: 'loading' });
   const requestVersion = useRef(0);
   const activeSession = useRef<AuthSession | null | undefined>(undefined);
+  const passwordRecovery = useRef(false);
 
   const resolveSession = useCallback(async (
     gateway: AuthGateway,
@@ -84,6 +91,10 @@ export function SessionProvider({
     if (version !== requestVersion.current) return false;
     if (!session) {
       setState({ status: 'signed_out' });
+      return true;
+    }
+    if (passwordRecovery.current) {
+      setState({ status: 'password_recovery', userId: session.userId });
       return true;
     }
     if (!session.emailVerified) {
@@ -102,6 +113,7 @@ export function SessionProvider({
       setState({
         status: 'paired',
         userId: session.userId,
+        email: session.email,
         displayName: account.displayName,
         coupleId: account.membership.coupleId,
         partnerId: account.membership.partnerId,
@@ -149,7 +161,14 @@ export function SessionProvider({
       return;
     }
     const gateway = gatewayResult.gateway;
-    const unsubscribe = gateway.subscribe((session) => {
+    const unsubscribe = gateway.subscribe((session, event: AuthEvent = '') => {
+      if (event === 'PASSWORD_RECOVERY' && session) {
+        passwordRecovery.current = true;
+        activeSession.current = session;
+        ++requestVersion.current;
+        setState({ status: 'password_recovery', userId: session.userId });
+        return;
+      }
       if (sameSession(activeSession.current, session)) return;
       activeSession.current = session;
       const version = ++requestVersion.current;
@@ -173,11 +192,13 @@ export function SessionProvider({
       state,
       async signIn(input) {
         const activeGateway = requiredGateway();
+        passwordRecovery.current = false;
         await activeGateway.signIn(input);
         await loadRestoredSession(activeGateway, false);
       },
       async signUp(input) {
         const activeGateway = requiredGateway();
+        passwordRecovery.current = false;
         const result = await activeGateway.signUp(input);
         if (result === 'verification_required') {
           ++requestVersion.current;
@@ -189,6 +210,7 @@ export function SessionProvider({
       },
       async signOut() {
         const activeGateway = requiredGateway();
+        passwordRecovery.current = false;
         ++requestVersion.current;
         await activeGateway.signOut();
         activeSession.current = null;
@@ -210,6 +232,22 @@ export function SessionProvider({
         const activeGateway = requiredGateway();
         await activeGateway.leaveCurrentCouple();
         await loadRestoredSession(activeGateway, true);
+      },
+      async requestPasswordReset(email) {
+        const redirectTo = window.location.origin + window.location.pathname;
+        await requiredGateway().requestPasswordReset(email, redirectTo);
+      },
+      updatePassword(password) {
+        return requiredGateway().updatePassword(password);
+      },
+      async updateDisplayName(displayName) {
+        const activeGateway = requiredGateway();
+        const result = await activeGateway.updateDisplayName(displayName);
+        await loadRestoredSession(activeGateway, true);
+        return result;
+      },
+      updateEmail(email) {
+        return requiredGateway().updateEmail(email);
       },
     };
   }, [gatewayResult, loadRestoredSession, state]);
