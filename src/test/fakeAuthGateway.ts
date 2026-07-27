@@ -84,16 +84,7 @@ export class FakeAuthGateway implements AuthGateway {
     this.accountContext = { ...this.accountContext, membership: null };
   }
 
-  passwordResetRequests: string[] = [];
-  passwordResetCodeVerifications: Array<{ email: string; token: string }> = [];
-
-  async requestPasswordReset(email: string) {
-    this.passwordResetRequests.push(email);
-  }
-
-  async verifyPasswordResetCode(email: string, token: string) {
-    this.passwordResetCodeVerifications.push({ email, token });
-  }
+  async requestPasswordReset(_email: string, _redirectTo: string) {}
 
   async updatePassword(_password: string) {}
 

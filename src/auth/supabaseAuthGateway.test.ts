@@ -15,7 +15,6 @@ function mockClient() {
       signOut: vi.fn(),
       updateUser: vi.fn(),
       resetPasswordForEmail: vi.fn(),
-      verifyOtp: vi.fn(),
     },
     from: vi.fn(),
     rpc: vi.fn(),
@@ -114,18 +113,15 @@ it('updates display name through the protected RPC and account credentials throu
   expect(client.auth.updateUser).toHaveBeenNthCalledWith(2, { password: 'secret123' });
 });
 
-it('sends password reset requests, verifies recovery codes, and updates the password', async () => {
+it('sends password reset requests and updates the password', async () => {
   const { client } = mockClient();
   client.auth.resetPasswordForEmail = vi.fn().mockResolvedValue({ error: null });
-  client.auth.verifyOtp = vi.fn().mockResolvedValue({ error: null });
   client.auth.updateUser = vi.fn().mockResolvedValue({ error: null });
   const gateway = createSupabaseAuthGateway(client as never, new BrowserAuthStorage());
 
-  await gateway.requestPasswordReset(' me@example.com ');
-  await gateway.verifyPasswordResetCode(' me@example.com ', ' 123456 ');
+  await gateway.requestPasswordReset(' me@example.com ', 'https://example.com/reset');
   await gateway.updatePassword('secret123');
 
-  expect(client.auth.resetPasswordForEmail).toHaveBeenCalledWith('me@example.com');
-  expect(client.auth.verifyOtp).toHaveBeenCalledWith({ email: 'me@example.com', token: '123456', type: 'recovery' });
+  expect(client.auth.resetPasswordForEmail).toHaveBeenCalledWith('me@example.com', { redirectTo: 'https://example.com/reset' });
   expect(client.auth.updateUser).toHaveBeenCalledWith({ password: 'secret123' });
 });

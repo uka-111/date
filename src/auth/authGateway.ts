@@ -54,8 +54,7 @@ export interface AuthGateway {
   redeemInvite(code: string): Promise<PairingResult>;
   regenerateInvite(): Promise<InviteResult>;
   leaveCurrentCouple(): Promise<void>;
-  requestPasswordReset(email: string): Promise<void>;
-  verifyPasswordResetCode(email: string, token: string): Promise<void>;
+  requestPasswordReset(email: string, redirectTo: string): Promise<void>;
   updatePassword(password: string): Promise<void>;
   updateDisplayName(displayName: string): Promise<string>;
   updateEmail(email: string): Promise<void>;

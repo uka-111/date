@@ -174,13 +174,8 @@ export function createSupabaseAuthGateway(
       if (error) throw stableError(error);
     },
 
-    async requestPasswordReset(email: string) {
-      const { error } = await client.auth.resetPasswordForEmail(email.trim());
-      if (error) throw stableError(error);
-    },
-
-    async verifyPasswordResetCode(email: string, token: string) {
-      const { error } = await client.auth.verifyOtp({ email: email.trim(), token: token.trim(), type: 'recovery' });
+    async requestPasswordReset(email: string, redirectTo: string) {
+      const { error } = await client.auth.resetPasswordForEmail(email.trim(), { redirectTo });
       if (error) throw stableError(error);
     },
 
