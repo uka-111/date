@@ -47,6 +47,16 @@ it('applies the latest adjustment when the original sender accepts it', () => {
   });
 });
 
+it.each(['him', 'her'] as const)('allows either partner to cancel a confirmed invitation', (actorId) => {
+  const invitation = invitationBuilder({ status: 'confirmed' });
+  expect(respondToInvitation(invitation, actorId, { type: 'cancel' }).status).toBe('cancelled');
+});
+
+it('does not allow cancelling an already cancelled invitation', () => {
+  expect(() => respondToInvitation(invitationBuilder({ status: 'cancelled' }), 'him', { type: 'cancel' }))
+    .toThrow('这个约会已经结束，不能再次修改');
+});
+
 it('does not share activity arrays with the source invitation or adjustment history', () => {
   const invitation = invitationBuilder({ activity: ['看电影'] });
   const confirmed = respondToInvitation(invitation, 'her', { type: 'confirm' });

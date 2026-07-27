@@ -40,8 +40,8 @@ function assertTransitionAllowed(
   }
 
   if (response.type === 'cancel') {
-    if (actorId !== invitation.senderId) {
-      throw new Error('只有发起方可以取消这个约会');
+    if (!['pending', 'adjustment_pending', 'confirmed'].includes(invitation.status)) {
+      throw new Error('当前状态不能取消这个约会');
     }
     return;
   }
