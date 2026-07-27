@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import type { PartnerId } from '../domain/models';
 import { NotificationBell } from '../features/notifications/NotificationBell';
+import { SettingsPanel } from '../features/settings/SettingsPanel';
 import type { NotificationRecord } from '../storage/schema';
 
 interface AppShellProps {
@@ -10,37 +11,40 @@ interface AppShellProps {
   onNotificationClick: () => void;
   onSignOut: () => void;
   onLeaveCouple?: () => Promise<void>;
+  displayName?: string;
+  email?: string;
+  onUpdateDisplayName?(name: string): Promise<string>;
+  onUpdateEmail?(email: string): Promise<void>;
+  onUpdatePassword?(password: string): Promise<void>;
   children: ReactNode;
 }
-
 export function AppShell({
   partnerId,
   notifications,
   onNotificationClick,
   onSignOut,
   onLeaveCouple = async () => {},
+  displayName = '',
+  email = '',
+  onUpdateDisplayName = async () => displayName,
+  onUpdateEmail = async () => {},
+  onUpdatePassword = async () => {},
   children,
 }: AppShellProps) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
   return (
     <div className="app-shell">
       <header className="topbar">
         <Link className="brand" to="/" aria-label="留一页给我们首页">
-          <span aria-hidden="true">♡</span>
           <span>留一页给我们</span>
         </Link>
         <div className="topbar-actions">
-          <span className="identity-pill">
-            当前身份：{partnerId === 'him' ? '他' : '她'}
-          </span>
           <NotificationBell
             partnerId={partnerId}
             notifications={notifications}
             onClick={onNotificationClick}
           />
-          <button className="text-button" type="button" onClick={onSignOut}>
-            退出账号
-          </button>
-          <LeaveCoupleButton onLeaveCouple={onLeaveCouple} />
+          <button className="icon-button settings-trigger" type="button" aria-label="设置" onClick={() => setSettingsOpen(true)}>⚙</button>
         </div>
       </header>
 
@@ -60,31 +64,7 @@ export function AppShell({
       </nav>
 
       <main className="page-container">{children}</main>
+      <SettingsPanel open={settingsOpen} displayName={displayName} email={email} partnerId={partnerId} onClose={() => setSettingsOpen(false)} onUpdateDisplayName={onUpdateDisplayName} onUpdateEmail={onUpdateEmail} onUpdatePassword={onUpdatePassword} onLeaveCouple={onLeaveCouple} onSignOut={onSignOut} />
     </div>
   );
-}
-
-function LeaveCoupleButton({ onLeaveCouple }: { onLeaveCouple: () => Promise<void> }) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-
-  async function leave() {
-    if (!window.confirm('确定取消配对吗？历史日历、预约、照片和文字记录会保留；以后你们重新配对时可以恢复这些内容。')) return;
-    setBusy(true);
-    setError('');
-    try {
-      await onLeaveCouple();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : '取消配对失败，请稍后再试');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return <span className="leave-couple-control">
-    <button className="text-button danger-text-button" type="button" disabled={busy} onClick={() => void leave()}>
-      {busy ? '正在取消配对...' : '取消配对'}
-    </button>
-    {error && <span role="alert">{error}</span>}
-  </span>;
 }

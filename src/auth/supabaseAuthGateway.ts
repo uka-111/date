@@ -4,6 +4,7 @@ import type { Database } from '../lib/database.types';
 import { getSupabaseBrowserRuntime } from '../lib/supabaseClient';
 import {
   type AccountContext,
+  type AuthEvent,
   type AuthGateway,
   type AuthSession,
   type InviteResult,
@@ -78,8 +79,8 @@ export function createSupabaseAuthGateway(
     },
 
     subscribe(listener) {
-      const { data } = client.auth.onAuthStateChange((_event, session) => {
-        listener(mapSession(session));
+      const { data } = client.auth.onAuthStateChange((event, session) => {
+        listener(mapSession(session), event as AuthEvent);
       });
       return () => data.subscription.unsubscribe();
     },
@@ -170,6 +171,26 @@ export function createSupabaseAuthGateway(
 
     async leaveCurrentCouple() {
       const { error } = await client.rpc('leave_current_couple');
+      if (error) throw stableError(error);
+    },
+
+    async requestPasswordReset(email: string, redirectTo: string) {
+      const { error } = await client.auth.resetPasswordForEmail(email.trim(), { redirectTo });
+      if (error) throw stableError(error);
+    },
+
+    async updatePassword(password: string) {
+      const { error } = await client.auth.updateUser({ password });
+      if (error) throw stableError(error);
+    },
+
+    async updateDisplayName(displayName: string) {
+      const response = await client.rpc('update_my_display_name', { p_display_name: displayName.trim() });
+      return requireData(response.data, response.error);
+    },
+
+    async updateEmail(email: string) {
+      const { error } = await client.auth.updateUser({ email: email.trim() });
       if (error) throw stableError(error);
     },
   };

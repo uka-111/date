@@ -78,6 +78,7 @@ it('derives paired identity and member count only from membership', async () => 
     expect(result.current.state).toEqual({
       status: 'paired',
       userId: 'user-a',
+      email: 'a@example.com',
       displayName: '小雨',
       coupleId: 'couple-1',
       partnerId: 'her',
