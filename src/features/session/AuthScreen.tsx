@@ -31,7 +31,7 @@ export function AuthScreen({ onSignIn, onSignUp, onRequestPasswordReset = async 
     try {
       if (mode === 'forgot') {
         await onRequestPasswordReset(email);
-        setNotice('重置邮件已发送，请检查你的邮箱。');
+        setNotice('验证码已发送，请检查你的邮箱。');
       } else if (mode === 'login') {
         await onSignIn({ email, password, persistent });
       } else {
@@ -83,7 +83,7 @@ export function AuthScreen({ onSignIn, onSignUp, onRequestPasswordReset = async 
           {error && <p role="alert">{error}</p>}
           {notice && <p role="status">{notice}</p>}
           <button type="submit" disabled={loading}>
-            {loading ? (mode === 'forgot' ? '正在发送...' : mode === 'login' ? '正在登录...' : '正在创建...') : (mode === 'forgot' ? '发送重置邮件' : mode === 'login' ? '登录' : '创建账号')}
+          {loading ? (mode === 'forgot' ? '正在发送...' : mode === 'login' ? '正在登录...' : '正在创建...') : (mode === 'forgot' ? '发送验证码' : mode === 'login' ? '登录' : '创建账号')}
           </button>
           {mode === 'login' && <button className="quiet-action" type="button" onClick={() => chooseMode('forgot')}>忘记密码？</button>}
           {mode === 'forgot' && <button className="quiet-action" type="button" onClick={() => chooseMode('login')}>返回登录</button>}

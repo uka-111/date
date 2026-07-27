@@ -3,6 +3,7 @@ import { AuthScreen } from '../features/session/AuthScreen';
 import { PairingScreen } from '../features/session/PairingScreen';
 import { VerifyEmailScreen } from '../features/session/VerifyEmailScreen';
 import { PasswordResetScreen } from '../features/session/PasswordResetScreen';
+import { PasswordResetCodeScreen } from '../features/session/PasswordResetCodeScreen';
 import { CloudSetupScreen } from './CloudSetupScreen';
 import { BookingDataScreen } from './BookingDataScreen';
 import type { DateBookingRepository } from './bookingRepository';
@@ -21,6 +22,11 @@ function AppContent({ bookingRepositoryFactory }: { bookingRepositoryFactory?: (
       return <AuthScreen onSignIn={session.signIn} onSignUp={session.signUp} onRequestPasswordReset={session.requestPasswordReset} />;
     case 'verification_required':
       return <VerifyEmailScreen email={session.state.email} onSignOut={session.signOut} />;
+    case 'password_reset_code':
+      {
+        const resetEmail = session.state.email;
+        return <PasswordResetCodeScreen email={resetEmail} onVerify={session.verifyPasswordResetCode} onResend={() => session.requestPasswordReset(resetEmail)} onBack={session.signOut} />;
+      }
     case 'password_recovery':
       return <PasswordResetScreen onUpdatePassword={session.updatePassword} onComplete={session.signOut} />;
     case 'unpaired':

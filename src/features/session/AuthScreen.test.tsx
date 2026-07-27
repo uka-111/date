@@ -62,15 +62,15 @@ it('shows the verification notice returned by registration', async () => {
   expect(await screen.findByRole('status')).toHaveTextContent('请检查 me@example.com');
 });
 
-it('sends a password reset email from the forgot-password flow', async () => {
+it('sends a password reset code from the forgot-password flow', async () => {
   const onRequestPasswordReset = vi.fn().mockResolvedValue(undefined);
   const user = userEvent.setup();
   render(<AuthScreen onSignIn={vi.fn()} onSignUp={vi.fn()} onRequestPasswordReset={onRequestPasswordReset} />);
 
   await user.click(screen.getByRole('button', { name: '忘记密码？' }));
   await user.type(screen.getByLabelText('邮箱'), 'me@example.com');
-  await user.click(screen.getByRole('button', { name: '发送重置邮件' }));
+  await user.click(screen.getByRole('button', { name: '发送验证码' }));
 
   expect(onRequestPasswordReset).toHaveBeenCalledWith('me@example.com');
-  expect(await screen.findByRole('status')).toHaveTextContent('重置邮件已发送');
+  expect(await screen.findByRole('status')).toHaveTextContent('验证码已发送');
 });
