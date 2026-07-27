@@ -87,4 +87,11 @@ export class FakeAuthGateway implements AuthGateway {
   async requestPasswordReset(_email: string, _redirectTo: string) {}
 
   async updatePassword(_password: string) {}
+
+  async updateDisplayName(displayName: string) {
+    this.accountContext = { ...this.accountContext, displayName };
+    return displayName;
+  }
+
+  async updateEmail(_email: string) {}
 }
