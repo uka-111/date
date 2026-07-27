@@ -183,6 +183,16 @@ export function createSupabaseAuthGateway(
       const { error } = await client.auth.updateUser({ password });
       if (error) throw stableError(error);
     },
+
+    async updateDisplayName(displayName: string) {
+      const response = await client.rpc('update_my_display_name', { p_display_name: displayName.trim() });
+      return requireData(response.data, response.error);
+    },
+
+    async updateEmail(email: string) {
+      const { error } = await client.auth.updateUser({ email: email.trim() });
+      if (error) throw stableError(error);
+    },
   };
 }
 

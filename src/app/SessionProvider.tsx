@@ -27,7 +27,7 @@ export type SessionState =
   | { status: 'verification_required'; email: string }
   | { status: 'password_recovery'; userId: string }
   | { status: 'unpaired'; userId: string; displayName: string }
-  | { status: 'paired'; userId: string; displayName: string; coupleId: string; partnerId: PartnerId; memberCount: number }
+  | { status: 'paired'; userId: string; email: string; displayName: string; coupleId: string; partnerId: PartnerId; memberCount: number }
   | { status: 'error'; message: string };
 
 interface SessionValue {
@@ -42,6 +42,8 @@ interface SessionValue {
   leaveCurrentCouple(): Promise<void>;
   requestPasswordReset(email: string): Promise<void>;
   updatePassword(password: string): Promise<void>;
+  updateDisplayName(displayName: string): Promise<string>;
+  updateEmail(email: string): Promise<void>;
 }
 
 const SessionContext = createContext<SessionValue | null>(null);
@@ -111,6 +113,7 @@ export function SessionProvider({
       setState({
         status: 'paired',
         userId: session.userId,
+        email: session.email,
         displayName: account.displayName,
         coupleId: account.membership.coupleId,
         partnerId: account.membership.partnerId,
@@ -236,6 +239,15 @@ export function SessionProvider({
       },
       updatePassword(password) {
         return requiredGateway().updatePassword(password);
+      },
+      async updateDisplayName(displayName) {
+        const activeGateway = requiredGateway();
+        const result = await activeGateway.updateDisplayName(displayName);
+        await loadRestoredSession(activeGateway, true);
+        return result;
+      },
+      updateEmail(email) {
+        return requiredGateway().updateEmail(email);
       },
     };
   }, [gatewayResult, loadRestoredSession, state]);

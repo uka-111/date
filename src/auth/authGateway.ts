@@ -56,4 +56,6 @@ export interface AuthGateway {
   leaveCurrentCouple(): Promise<void>;
   requestPasswordReset(email: string, redirectTo: string): Promise<void>;
   updatePassword(password: string): Promise<void>;
+  updateDisplayName(displayName: string): Promise<string>;
+  updateEmail(email: string): Promise<void>;
 }
