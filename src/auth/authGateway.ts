@@ -6,6 +6,8 @@ export interface AuthSession {
   emailVerified: boolean;
 }
 
+export type AuthEvent = 'PASSWORD_RECOVERY' | string;
+
 export interface AccountContext {
   displayName: string;
   membership: null | {
@@ -43,7 +45,7 @@ export type SignUpResult = 'signed_in' | 'verification_required';
 
 export interface AuthGateway {
   restoreSession(): Promise<AuthSession | null>;
-  subscribe(listener: (session: AuthSession | null) => void): () => void;
+  subscribe(listener: (session: AuthSession | null, event?: AuthEvent) => void): () => void;
   signIn(input: SignInInput): Promise<void>;
   signUp(input: SignUpInput): Promise<SignUpResult>;
   signOut(): Promise<void>;
@@ -52,4 +54,6 @@ export interface AuthGateway {
   redeemInvite(code: string): Promise<PairingResult>;
   regenerateInvite(): Promise<InviteResult>;
   leaveCurrentCouple(): Promise<void>;
+  requestPasswordReset(email: string, redirectTo: string): Promise<void>;
+  updatePassword(password: string): Promise<void>;
 }

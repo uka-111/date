@@ -2,6 +2,7 @@ import type { AuthGateway } from '../auth/authGateway';
 import { AuthScreen } from '../features/session/AuthScreen';
 import { PairingScreen } from '../features/session/PairingScreen';
 import { VerifyEmailScreen } from '../features/session/VerifyEmailScreen';
+import { PasswordResetScreen } from '../features/session/PasswordResetScreen';
 import { CloudSetupScreen } from './CloudSetupScreen';
 import { BookingDataScreen } from './BookingDataScreen';
 import type { DateBookingRepository } from './bookingRepository';
@@ -17,9 +18,11 @@ function AppContent({ bookingRepositoryFactory }: { bookingRepositoryFactory?: (
     case 'loading':
       return <main className="session-state"><p>正在恢复登录...</p></main>;
     case 'signed_out':
-      return <AuthScreen onSignIn={session.signIn} onSignUp={session.signUp} />;
+      return <AuthScreen onSignIn={session.signIn} onSignUp={session.signUp} onRequestPasswordReset={session.requestPasswordReset} />;
     case 'verification_required':
       return <VerifyEmailScreen email={session.state.email} onSignOut={session.signOut} />;
+    case 'password_recovery':
+      return <PasswordResetScreen onUpdatePassword={session.updatePassword} onComplete={session.signOut} />;
     case 'unpaired':
       return (
         <PairingScreen

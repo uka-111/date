@@ -83,4 +83,8 @@ export class FakeAuthGateway implements AuthGateway {
   async leaveCurrentCouple() {
     this.accountContext = { ...this.accountContext, membership: null };
   }
+
+  async requestPasswordReset(_email: string, _redirectTo: string) {}
+
+  async updatePassword(_password: string) {}
 }

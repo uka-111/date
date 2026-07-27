@@ -13,6 +13,8 @@ function mockClient() {
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
+      updateUser: vi.fn(),
     },
     from: vi.fn(),
     rpc: vi.fn(),
@@ -29,7 +31,7 @@ it('maps restored and subscribed Supabase users to auth sessions', async () => {
   const listener = vi.fn();
   gateway.subscribe(listener);
   listeners[0]('SIGNED_IN', { user: { id: 'u2', email: 'b@example.com', confirmed_at: null } });
-  expect(listener).toHaveBeenCalledWith({ userId: 'u2', email: 'b@example.com', emailVerified: false });
+  expect(listener).toHaveBeenCalledWith({ userId: 'u2', email: 'b@example.com', emailVerified: false }, 'SIGNED_IN');
 });
 
 it('selects browser persistence before password sign-in', async () => {
@@ -94,4 +96,17 @@ it('calls the leave-current-couple RPC', async () => {
   await gateway.leaveCurrentCouple();
 
   expect(client.rpc).toHaveBeenCalledWith('leave_current_couple');
+});
+
+it('sends password reset requests and updates the password', async () => {
+  const { client } = mockClient();
+  client.auth.resetPasswordForEmail = vi.fn().mockResolvedValue({ error: null });
+  client.auth.updateUser = vi.fn().mockResolvedValue({ error: null });
+  const gateway = createSupabaseAuthGateway(client as never, new BrowserAuthStorage());
+
+  await gateway.requestPasswordReset(' me@example.com ', 'https://example.com/reset');
+  await gateway.updatePassword('secret123');
+
+  expect(client.auth.resetPasswordForEmail).toHaveBeenCalledWith('me@example.com', { redirectTo: 'https://example.com/reset' });
+  expect(client.auth.updateUser).toHaveBeenCalledWith({ password: 'secret123' });
 });

@@ -4,10 +4,11 @@ import type { SignInInput, SignUpInput, SignUpResult } from '../../auth/authGate
 interface AuthScreenProps {
   onSignIn(input: SignInInput): Promise<void>;
   onSignUp(input: SignUpInput): Promise<SignUpResult>;
+  onRequestPasswordReset?(email: string): Promise<void>;
 }
 
-export function AuthScreen({ onSignIn, onSignUp }: AuthScreenProps) {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+export function AuthScreen({ onSignIn, onSignUp, onRequestPasswordReset = async () => {} }: AuthScreenProps) {
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -16,7 +17,7 @@ export function AuthScreen({ onSignIn, onSignUp }: AuthScreenProps) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
-  function chooseMode(nextMode: 'login' | 'register') {
+  function chooseMode(nextMode: 'login' | 'register' | 'forgot') {
     setMode(nextMode);
     setError('');
     setNotice('');
@@ -28,7 +29,10 @@ export function AuthScreen({ onSignIn, onSignUp }: AuthScreenProps) {
     setError('');
     setNotice('');
     try {
-      if (mode === 'login') {
+      if (mode === 'forgot') {
+        await onRequestPasswordReset(email);
+        setNotice('重置邮件已发送，请检查你的邮箱。');
+      } else if (mode === 'login') {
         await onSignIn({ email, password, persistent });
       } else {
         const result = await onSignUp({ email, password, displayName });
@@ -66,10 +70,10 @@ export function AuthScreen({ onSignIn, onSignUp }: AuthScreenProps) {
             邮箱
             <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required />
           </label>
-          <label>
+          {mode !== 'forgot' && <label>
             密码
             <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} required minLength={6} />
-          </label>
+          </label>}
           {mode === 'login' && (
             <label className="checkbox-row">
               <input type="checkbox" checked={persistent} onChange={(event) => setPersistent(event.target.checked)} />
@@ -79,8 +83,10 @@ export function AuthScreen({ onSignIn, onSignUp }: AuthScreenProps) {
           {error && <p role="alert">{error}</p>}
           {notice && <p role="status">{notice}</p>}
           <button type="submit" disabled={loading}>
-            {loading ? (mode === 'login' ? '正在登录...' : '正在创建...') : (mode === 'login' ? '登录' : '创建账号')}
+            {loading ? (mode === 'forgot' ? '正在发送...' : mode === 'login' ? '正在登录...' : '正在创建...') : (mode === 'forgot' ? '发送重置邮件' : mode === 'login' ? '登录' : '创建账号')}
           </button>
+          {mode === 'login' && <button className="quiet-action" type="button" onClick={() => chooseMode('forgot')}>忘记密码？</button>}
+          {mode === 'forgot' && <button className="quiet-action" type="button" onClick={() => chooseMode('login')}>返回登录</button>}
         </form>
       </section>
     </main>
