@@ -25,7 +25,6 @@ export type SessionState =
   | { status: 'loading' }
   | { status: 'signed_out' }
   | { status: 'verification_required'; email: string }
-  | { status: 'password_reset_code'; email: string }
   | { status: 'password_recovery'; userId: string }
   | { status: 'unpaired'; userId: string; displayName: string }
   | { status: 'paired'; userId: string; email: string; displayName: string; coupleId: string; partnerId: PartnerId; memberCount: number }
@@ -42,7 +41,6 @@ interface SessionValue {
   regenerateInvite(): Promise<InviteResult>;
   leaveCurrentCouple(): Promise<void>;
   requestPasswordReset(email: string): Promise<void>;
-  verifyPasswordResetCode(token: string): Promise<void>;
   updatePassword(password: string): Promise<void>;
   updateDisplayName(displayName: string): Promise<string>;
   updateEmail(email: string): Promise<void>;
@@ -236,21 +234,8 @@ export function SessionProvider({
         await loadRestoredSession(activeGateway, true);
       },
       async requestPasswordReset(email) {
-        const normalizedEmail = email.trim();
-        await requiredGateway().requestPasswordReset(normalizedEmail);
-        ++requestVersion.current;
-        setState({ status: 'password_reset_code', email: normalizedEmail });
-      },
-      async verifyPasswordResetCode(token) {
-        const currentState = state;
-        if (currentState.status !== 'password_reset_code') throw new Error('密码重置流程已失效，请重新获取验证码');
-        await requiredGateway().verifyPasswordResetCode(currentState.email, token);
-        passwordRecovery.current = true;
-        const session = await requiredGateway().restoreSession();
-        if (!session) throw new Error('验证码验证成功但恢复会话失败，请重试');
-        activeSession.current = session;
-        ++requestVersion.current;
-        setState({ status: 'password_recovery', userId: session.userId });
+        const redirectTo = window.location.origin + window.location.pathname;
+        await requiredGateway().requestPasswordReset(email, redirectTo);
       },
       updatePassword(password) {
         return requiredGateway().updatePassword(password);
