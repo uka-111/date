@@ -1,22 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { InviteResult } from '../auth/authGateway';
 import { useSignOutAction } from '../features/session/useSignOutAction';
+import { SettingsPanel } from '../features/settings/SettingsPanel';
+import type { PartnerId } from '../domain/models';
 
 interface CloudSetupScreenProps {
   userId: string;
   displayName: string;
+  email?: string;
+  partnerId?: PartnerId;
   memberCount: number;
   onRegenerateInvite(): Promise<InviteResult>;
   onRefresh(): Promise<void>;
   onLeaveCouple?(): Promise<void>;
   onSignOut(): Promise<void> | void;
+  onUpdateDisplayName?(name: string): Promise<string>;
+  onUpdateEmail?(email: string): Promise<void>;
+  onUpdatePassword?(password: string): Promise<void>;
 }
 
-export function CloudSetupScreen({ userId, displayName, memberCount, onRegenerateInvite, onRefresh, onLeaveCouple = async () => {}, onSignOut }: CloudSetupScreenProps) {
+export function CloudSetupScreen({ userId, displayName, email = '', partnerId = 'him', memberCount, onRegenerateInvite, onRefresh, onLeaveCouple = async () => {}, onSignOut, onUpdateDisplayName = async () => displayName, onUpdateEmail = async () => {}, onUpdatePassword = async () => {} }: CloudSetupScreenProps) {
   const [invite, setInvite] = useState<InviteResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const operationInFlight = useRef(false);
   const exclusiveSignOut = useCallback(async () => {
     if (operationInFlight.current) return;
@@ -93,6 +101,7 @@ export function CloudSetupScreen({ userId, displayName, memberCount, onRegenerat
     <main className="entry-page session-page">
       <section className="entry-card session-card card">
         <p className="session-eyebrow">{displayName}，欢迎回来</p>
+        <button className="icon-button settings-trigger session-settings-trigger" type="button" aria-label="设置" onClick={() => setSettingsOpen(true)}>⚙ 设置</button>
         <h1>{memberCount >= 2 ? '双方已配对' : '等待对方加入'}</h1>
         <p>云端空间已经建立。共享日历会在下一阶段接入，这里不会读取或导入本机旧数据。</p>
         {memberCount === 1 && (
@@ -113,6 +122,7 @@ export function CloudSetupScreen({ userId, displayName, memberCount, onRegenerat
         <button className="quiet-action danger-text-button" type="button" disabled={busy} onClick={() => void leaveCouple()}>{refreshing ? '正在取消配对...' : '取消配对'}</button>
         <button className="quiet-action" type="button" disabled={busy} onClick={() => void runSignOut()}>{signingOut ? '正在退出...' : '退出账号'}</button>
       </section>
+      <SettingsPanel open={settingsOpen} displayName={displayName} email={email} partnerId={partnerId} onClose={() => setSettingsOpen(false)} onUpdateDisplayName={onUpdateDisplayName} onUpdateEmail={onUpdateEmail} onUpdatePassword={onUpdatePassword} onLeaveCouple={onLeaveCouple} onSignOut={onSignOut} />
     </main>
   );
 }
