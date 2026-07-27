@@ -12,11 +12,16 @@ import { NotificationList } from '../features/notifications/NotificationList';
 import type { PartnerId } from '../domain/models';
 import { createPhotoRepository } from '../storage/photoRepository';
 
-function InvitationRoute({ partnerId, repository, onChanged }: { partnerId: PartnerId; repository: ReturnType<typeof createCloudUiAdapter>; onChanged: () => void }) {
+export function InvitationRoute({ partnerId, repository, onChanged }: { partnerId: PartnerId; repository: ReturnType<typeof createCloudUiAdapter>; onChanged: () => void }) {
   const { id } = useParams();
   const invitation = repository.read().invitations.find((value) => value.id === id);
   if (!invitation) return <section><h2>没有找到这个约会</h2><Link to="/">返回共享日历</Link></section>;
-  return <InvitationDetails invitation={invitation} partnerId={partnerId} repository={repository} onUpdated={onChanged} />;
+  return (
+    <section className="details-page">
+      <Link className="text-button invitation-back-link" to="/invitations">返回</Link>
+      <InvitationDetails invitation={invitation} partnerId={partnerId} repository={repository} onUpdated={onChanged} />
+    </section>
+  );
 }
 
 export function BookingDataScreen({ repository, displayName, partnerId, onSignOut, onLeaveCouple }: { repository: DateBookingRepository; displayName: string; partnerId: PartnerId; onSignOut: () => void; onLeaveCouple: () => Promise<void> }) {

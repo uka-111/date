@@ -61,6 +61,24 @@
   box-shadow: 0 6px 20px rgba(103, 66, 55, 0.08);
 }
 
+.invitation-back-link {
+  display: inline-block;
+  margin-bottom: 12px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--coral-dark);
+  font-weight: 700;
+  padding: 0 2px 4px;
+  text-decoration: none;
+}
+
+.invitation-back-link:hover,
+.invitation-back-link:focus-visible {
+  background: transparent;
+  box-shadow: 0 1px 0 currentColor;
+}
+
 .danger-text-button {
   color: #a33f4b;
 }
