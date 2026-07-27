@@ -201,7 +201,7 @@ export function InvitationDetails({
         </button>
       )}
 
-      {!isTerminal && isSender && (
+      {!isTerminal && (isSender || isRecipient) && (
         <button type="button" onClick={() => setConfirmation('cancel')}>
           取消约会
         </button>

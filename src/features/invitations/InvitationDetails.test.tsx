@@ -77,6 +77,30 @@ it('confirms an invitation and notifies the sender', async () => {
   expect(onUpdated).toHaveBeenCalled();
 });
 
+it.each(['him', 'her'] as const)('lets either partner cancel a confirmed invitation and notifies the other partner', async (partnerId) => {
+  const repository = createLocalRepository(localStorage);
+  const onUpdated = vi.fn();
+  const user = userEvent.setup();
+  render(
+    <InvitationDetails
+      invitation={invitationBuilder({ status: 'confirmed', senderId: 'him', recipientId: 'her' })}
+      partnerId={partnerId}
+      repository={repository}
+      onUpdated={onUpdated}
+    />,
+  );
+
+  await user.click(screen.getByRole('button', { name: '取消约会' }));
+  await user.click(screen.getByRole('button', { name: '确认取消' }));
+
+  expect(repository.read().invitations[0].status).toBe('cancelled');
+  expect(repository.read().notifications[0]).toMatchObject({
+    recipientId: partnerId === 'him' ? 'her' : 'him',
+    kind: 'cancelled',
+  });
+  expect(onUpdated).toHaveBeenCalled();
+});
+
 it('suggests multiple activities without replacing the original and applies them when accepted', async () => {
   const repository = createLocalRepository(localStorage);
   const user = userEvent.setup();

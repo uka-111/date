@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, auth, extensions;
 
-select plan(36);
+select plan(39);
 
 select has_type('public', 'invitation_status', 'invitation status enum exists');
 select has_type('public', 'invitation_action', 'invitation action enum exists');
@@ -253,6 +253,41 @@ select is(
   ),
   3,
   'each successful invitation transition appends exactly one event'
+);
+
+reset role;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000b22', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
+set local role authenticated;
+
+select lives_ok(
+  format(
+    'select public.respond_to_invitation(%L::uuid, ''cancel'', null, null, null, null)',
+    (select invitation_id from shared_test_state where key = 'pending')
+  ),
+  'recipient can cancel a confirmed invitation'
+);
+
+select is(
+  (
+    select status::text
+    from public.invitations
+    where id = (select invitation_id from shared_test_state where key = 'pending')
+  ),
+  'cancelled',
+  'cancelling a confirmed invitation updates its status'
+);
+
+select is(
+  (
+    select count(*)::integer
+    from public.notifications
+    where invitation_id = (select invitation_id from shared_test_state where key = 'pending')
+      and recipient_id = '00000000-0000-0000-0000-000000000a11'::uuid
+      and kind = 'cancelled'::public.notification_kind
+  ),
+  1,
+  'cancelling a confirmed invitation notifies the other partner'
 );
 
 select * from finish();
