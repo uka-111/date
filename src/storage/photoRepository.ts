@@ -22,7 +22,7 @@ export interface PhotoRepository {
   count(date: string): Promise<number>;
 }
 
-export const MAX_LOCAL_PHOTOS_PER_DAY = 6;
+export const MAX_LOCAL_PHOTOS_PER_DAY = 30;
 const memory = new Map<string, PhotoRecord>();
 
 export function createPhotoRepository(

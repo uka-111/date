@@ -241,13 +241,13 @@ git commit -m "feat: add calendar date state summaries"
 - [ ] **Step 1: Write failing repository tests**
 
 ```ts
-it('stores and lists six photos for one date, then rejects the seventh', async () => {
+it('stores and lists thirty photos for one date, then rejects the thirty-first', async () => {
   const repository = await createPhotoRepository('test-db');
   for (let index = 0; index < 6; index += 1) {
     await repository.add({ date: '2026-07-25', blob: new Blob(['x'], { type: 'image/jpeg' }), title: `photo ${index}` });
   }
   await expect(repository.add({ date: '2026-07-25', blob: new Blob(['x'], { type: 'image/jpeg' }), title: '' }))
-    .rejects.toThrow('每天最多保存 6 张照片');
+    .rejects.toThrow('每天最多保存 30 张照片');
 });
 ```
 
@@ -471,7 +471,7 @@ Expected: all existing and new workflows PASS, including the 390px no-horizontal
 
 - [ ] **Step 3: Document the new behavior**
 
-Update README with multi-period semantics, the four visual states and legend, local six-photo limit versus future cloud thirty-photo limit, daily one-note behavior, view switching, and separate local reset behavior for structured data and media.
+Update README with multi-period semantics, the four visual states and legend, local thirty-photo limit, daily one-note behavior, view switching, and separate local reset behavior for structured data and media.
 
 - [ ] **Step 4: Run final verification**
 
