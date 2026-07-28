@@ -8,11 +8,13 @@ import { CalendarScaleControl } from './CalendarScaleControl';
 import { FiveYearCalendar, type MonthDensity } from './FiveYearCalendar';
 import { MonthCalendar } from './MonthCalendar';
 import { YearCalendar } from './YearCalendar';
+import { CalendarQuickJump } from './CalendarQuickJump';
 
 export function CalendarWorkspace({ repository, partnerId, photoRepository }: { repository: DateBookingRepository; partnerId: PartnerId; photoRepository?: PhotoRepository }) {
   const database = repository.read();
   const [scale, setScale] = useState<CalendarScale>(database.viewPreference);
   const [anchor, setAnchor] = useState(() => new Date());
+  const [quickJumpOpen, setQuickJumpOpen] = useState(false);
   const summaries = useMemo(() => {
     const result: Record<string, DateSummary> = {};
     for (const day of eachDayOfInterval({ start: subYears(anchor, 5), end: addYears(anchor, 5) })) {
@@ -21,7 +23,8 @@ export function CalendarWorkspace({ repository, partnerId, photoRepository }: { 
     }
     return result;
   }, [anchor, database, partnerId]);
-  const changeScale = (value: CalendarScale) => { setScale(value); repository.saveViewPreference(value); };
+  const changeScale = (value: CalendarScale) => { setScale(value); setQuickJumpOpen(false); repository.saveViewPreference(value); };
+  const jumpTo = (date: Date) => { setAnchor(date); setQuickJumpOpen(false); };
   const monthDensities = useMemo<Record<string, MonthDensity>>(() => {
     const output: Record<string, MonthDensity> = {};
     for (const invitation of database.invitations.filter((item) => item.status === 'confirmed')) {
@@ -32,8 +35,8 @@ export function CalendarWorkspace({ repository, partnerId, photoRepository }: { 
   }, [database]);
   const year = anchor.getFullYear();
   return <section className="calendar-workspace"><CalendarScaleControl scale={scale} onChange={changeScale} />
-    {scale === 'month' && <MonthCalendar key={format(anchor, 'yyyy-MM')} initialMonth={format(anchor, 'yyyy-MM')} repository={repository} partnerId={partnerId} photoRepository={photoRepository} />}
-    {scale === 'year' && <><div className="calendar-header"><button type="button" aria-label="上一年" onClick={() => setAnchor((value) => subYears(value, 1))}>‹</button><h2>{year}年</h2><button type="button" aria-label="下一年" onClick={() => setAnchor((value) => addYears(value, 1))}>›</button></div><YearCalendar year={year} summaries={summaries} onSelectDate={(date) => { setAnchor(new Date(`${date}T00:00:00`)); changeScale('month'); }} /></>}
-    {scale === 'five_years' && <><div className="calendar-header"><button type="button" aria-label="前五年" onClick={() => setAnchor((value) => subYears(value, 5))}>‹</button><h2>{year}-{year + 4}</h2><button type="button" aria-label="后五年" onClick={() => setAnchor((value) => addYears(value, 5))}>›</button></div><FiveYearCalendar startYear={year} densities={monthDensities} onSelectMonth={(month) => { setAnchor(new Date(`${month}-01T00:00:00`)); changeScale('month'); }} /></>}
+    {scale === 'month' && <MonthCalendar key={format(anchor, 'yyyy-MM')} initialMonth={format(anchor, 'yyyy-MM')} repository={repository} partnerId={partnerId} photoRepository={photoRepository} quickJumpOpen={quickJumpOpen} onToggleQuickJump={() => setQuickJumpOpen((value) => !value)} onMonthChange={setAnchor} onQuickJumpChange={jumpTo} />}
+    {scale === 'year' && <><div className="calendar-header"><button type="button" aria-label="上一年" onClick={() => setAnchor((value) => subYears(value, 1))}>‹</button><button type="button" className="calendar-title-button" aria-expanded={quickJumpOpen} aria-controls="calendar-quick-jump" onClick={() => setQuickJumpOpen((value) => !value)}><h2>{year}年</h2></button><button type="button" aria-label="下一年" onClick={() => setAnchor((value) => addYears(value, 1))}>›</button></div><CalendarQuickJump scale="year" anchor={anchor} open={quickJumpOpen} onChange={jumpTo} /><YearCalendar year={year} summaries={summaries} onSelectDate={(date) => { setAnchor(new Date(`${date}T00:00:00`)); changeScale('month'); }} /></>}
+    {scale === 'five_years' && <><div className="calendar-header"><button type="button" aria-label="前五年" onClick={() => setAnchor((value) => subYears(value, 5))}>‹</button><button type="button" className="calendar-title-button" aria-expanded={quickJumpOpen} aria-controls="calendar-quick-jump" onClick={() => setQuickJumpOpen((value) => !value)}><h2>{year}-{year + 4}</h2></button><button type="button" aria-label="后五年" onClick={() => setAnchor((value) => addYears(value, 5))}>›</button></div><CalendarQuickJump scale="five_years" anchor={anchor} open={quickJumpOpen} onChange={jumpTo} /><FiveYearCalendar startYear={year} densities={monthDensities} onSelectMonth={(month) => { setAnchor(new Date(`${month}-01T00:00:00`)); changeScale('month'); }} /></>}
   </section>;
 }

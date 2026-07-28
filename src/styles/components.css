@@ -433,6 +433,61 @@
   font-size: 1.6rem;
 }
 
+.calendar-header .calendar-title-button {
+  min-width: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.calendar-title-button:hover,
+.calendar-title-button[aria-expanded="true"] {
+  background: var(--blush-soft);
+}
+
+.calendar-title-button h2,
+.calendar-title-button span {
+  display: block;
+  margin: 0;
+  padding: 6px 8px;
+}
+
+.calendar-quick-jump {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: -6px 0 16px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--blush-soft);
+}
+
+.calendar-quick-jump label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.calendar-quick-jump select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--cocoa);
+  font: inherit;
+  padding: 8px 10px;
+}
+
+.calendar-quick-jump label:only-child {
+  grid-column: 1 / -1;
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));

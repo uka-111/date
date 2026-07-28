@@ -18,6 +18,7 @@ import { summarizeDateState } from '../../domain/dateState';
 import { DayPanel } from './DayPanel';
 import { StatusLegend } from './StatusLegend';
 import type { PhotoRepository } from '../../storage/photoRepository';
+import { CalendarQuickJump } from './CalendarQuickJump';
 
 interface MonthCalendarProps {
   initialMonth?: string;
@@ -25,6 +26,10 @@ interface MonthCalendarProps {
   partnerId: PartnerId;
   initialSelectedDate?: string;
   photoRepository?: PhotoRepository;
+  quickJumpOpen?: boolean;
+  onToggleQuickJump?: () => void;
+  onMonthChange?: (date: Date) => void;
+  onQuickJumpChange?: (date: Date) => void;
 }
 
 export function MonthCalendar({
@@ -33,6 +38,10 @@ export function MonthCalendar({
   partnerId,
   initialSelectedDate,
   photoRepository,
+  quickJumpOpen = false,
+  onToggleQuickJump,
+  onMonthChange,
+  onQuickJumpChange,
 }: MonthCalendarProps) {
   const [month, setMonth] = useState(() => parseISO(`${initialMonth}-01`));
   const [selectedDate, setSelectedDate] = useState<string | null>(initialSelectedDate ?? null);
@@ -41,6 +50,13 @@ export function MonthCalendar({
   const calendarEnd = endOfWeek(endOfMonth(month), { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
   const [photoDates, setPhotoDates] = useState<Set<string>>(new Set());
+  const moveMonth = (getNextMonth: (current: Date) => Date) => {
+    setMonth((current) => {
+      const nextMonth = getNextMonth(current);
+      onMonthChange?.(nextMonth);
+      return nextMonth;
+    });
+  };
   useEffect(() => {
     if (!photoRepository) return;
     let active = true;
@@ -59,19 +75,38 @@ export function MonthCalendar({
         <button
           type="button"
           aria-label="上个月"
-          onClick={() => setMonth((current) => subMonths(current, 1))}
+          onClick={() => moveMonth((current) => subMonths(current, 1))}
         >
           ‹
         </button>
-        <h2 id="calendar-heading">{format(month, 'yyyy年M月')}</h2>
+        {onToggleQuickJump ? (
+          <button
+            type="button"
+            className="calendar-title-button"
+            aria-expanded={quickJumpOpen}
+            aria-controls="calendar-quick-jump"
+            onClick={onToggleQuickJump}
+          >
+            <span id="calendar-heading">{format(month, 'yyyy年M月')}</span>
+          </button>
+        ) : <h2 id="calendar-heading">{format(month, 'yyyy年M月')}</h2>}
         <button
           type="button"
           aria-label="下个月"
-          onClick={() => setMonth((current) => addMonths(current, 1))}
+          onClick={() => moveMonth((current) => addMonths(current, 1))}
         >
           ›
         </button>
       </header>
+      {onToggleQuickJump && (
+        <CalendarQuickJump
+          scale="month"
+          anchor={month}
+          open={quickJumpOpen}
+          onChange={setMonth}
+          onComplete={onQuickJumpChange}
+        />
+      )}
       <StatusLegend />
 
       <div className="calendar-grid" role="grid" aria-label="共享月历">
