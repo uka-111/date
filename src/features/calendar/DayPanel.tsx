@@ -73,7 +73,7 @@ export function DayPanel({
         {photoRepository && <PhotoGallery date={date} repository={photoRepository} ownerId={memoryOwner} readOnly={!isOwnMemory} onChanged={onSaved} />}
         {isOwnMemory
           ? <DailyNoteEditor date={date} repository={repository} onSaved={onSaved} />
-          : <section className="daily-note daily-note-readonly" aria-label="对方当天记录"><h4>当天记录</h4>{viewedNote ? <><h5>{viewedNote.title || '当天记录'}</h5><p>{viewedNote.body}</p></> : <p>对方当天还没有记录。</p>}</section>}
+          : <section className="daily-note daily-note-readonly" aria-label="对方当天记录"><h4>当天记录</h4>{viewedNote ? <><span className="note-field-label">记录标题</span><p className="readonly-note-field">{viewedNote.title || '当天记录'}</p><span className="note-field-label">当天记录</span><p className="readonly-note-field readonly-note-body">{viewedNote.body}</p></> : <p>对方当天还没有记录。</p>}</section>}
       </div>
     </section>
   );

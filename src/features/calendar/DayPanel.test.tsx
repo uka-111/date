@@ -14,7 +14,9 @@ it('switches to the partner memory as a read-only view', async () => {
 
   expect(screen.getByRole('button', { name: '我的' })).toHaveAttribute('aria-pressed', 'true');
   await user.click(screen.getByRole('button', { name: '对方' }));
+  expect(screen.getByText('记录标题')).toBeVisible();
   expect(screen.getByText('她的记录')).toBeVisible();
+  expect(screen.getAllByText('当天记录')).toHaveLength(2);
   expect(screen.getByText('她的内容')).toBeVisible();
   expect(screen.queryByRole('button', { name: '保存记录' })).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: '删除记录' })).not.toBeInTheDocument();

@@ -8,6 +8,10 @@ function extension(type: string) {
   return 'jpg';
 }
 
+export function normalizeImageType(type: string) {
+  return type === 'image/jpg' ? 'image/jpeg' : type;
+}
+
 export function createSupabasePhotoRepository(client: SupabaseClient<Database>, coupleId: string, userId: string): PhotoRepository {
   let identities: Map<string, 'him' | 'her'> | null = null;
   async function identityMap() {
@@ -35,11 +39,13 @@ export function createSupabasePhotoRepository(client: SupabaseClient<Database>, 
   return {
     list,
     async add(input) {
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(input.blob.type) || input.blob.size > 10485760) throw new Error('请选择不超过 10 MB 的 JPG、PNG 或 WebP 图片');
-      const path = `${coupleId}/${input.date}/${crypto.randomUUID()}.${extension(input.blob.type)}`;
-      const uploaded = await client.storage.from('date-photos').upload(path, input.blob, { contentType: input.blob.type, upsert: false });
+      const mimeType = normalizeImageType(input.blob.type);
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(mimeType)) throw new Error('暂只支持 JPG、PNG 或 WebP 图片');
+      if (input.blob.size > 10485760) throw new Error('图片文件超过 10 MB，请压缩后再上传');
+      const path = `${coupleId}/${input.date}/${crypto.randomUUID()}.${extension(mimeType)}`;
+      const uploaded = await client.storage.from('date-photos').upload(path, input.blob, { contentType: mimeType, upsert: false });
       if (uploaded.error) throw new Error('照片上传失败');
-      const saved = await client.rpc('create_daily_photo', { p_date: input.date, p_storage_path: path, p_mime_type: input.blob.type });
+      const saved = await client.rpc('create_daily_photo', { p_date: input.date, p_storage_path: path, p_mime_type: mimeType });
       if (saved.error) { await client.storage.from('date-photos').remove([path]); throw new Error('照片上传失败'); }
       const created = (await list(input.date)).at(-1);
       if (!created) throw new Error('照片上传失败');
