@@ -542,9 +542,12 @@
 .photo-gallery, .daily-note { padding-top: 16px; border-top: 1px solid var(--border); }
 .memory-header { display: flex; align-items: center; justify-content: space-between; }
 .photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.photo-grid figure { margin: 0; }
+.photo-grid figure { position: relative; margin: 0; }
 .photo-grid img { width: 100%; aspect-ratio: 1; border-radius: 6px; object-fit: cover; }
 .photo-open { width: 100%; border: 0; background: transparent; padding: 0; cursor: pointer; }
+.photo-delete { position: absolute; top: 4px; right: 4px; display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--cocoa); box-shadow: 0 2px 8px rgba(73, 57, 54, 0.18); cursor: pointer; font-size: 1.2rem; line-height: 1; }
+.photo-delete:hover { border-color: var(--error); background: var(--error); color: white; }
+.photo-delete:focus-visible { outline: 3px solid color-mix(in srgb, var(--coral) 50%, transparent); outline-offset: 2px; }
 .photo-viewer { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(32, 26, 25, 0.86); color: white; }
 .photo-viewer img { max-width: min(92vw, 960px); max-height: 78vh; object-fit: contain; }
 .photo-viewer > button { justify-self: end; border: 1px solid white; background: transparent; color: white; padding: 8px 12px; cursor: pointer; }
