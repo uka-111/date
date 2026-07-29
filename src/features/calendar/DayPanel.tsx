@@ -70,7 +70,7 @@ export function DayPanel({
           <button type="button" aria-pressed={isOwnMemory} onClick={() => setMemoryOwner(partnerId)}>我的</button>
           <button type="button" aria-pressed={!isOwnMemory} onClick={() => setMemoryOwner(partnerIdToView)}>对方</button>
         </div>
-        {photoRepository && <PhotoGallery date={date} repository={photoRepository} onChanged={onSaved} />}
+        {photoRepository && <PhotoGallery date={date} repository={photoRepository} ownerId={memoryOwner} readOnly={!isOwnMemory} onChanged={onSaved} />}
         {isOwnMemory
           ? <DailyNoteEditor date={date} repository={repository} onSaved={onSaved} />
           : <section className="daily-note daily-note-readonly" aria-label="对方当天记录"><h4>当天记录</h4>{viewedNote ? <><h5>{viewedNote.title || '当天记录'}</h5><p>{viewedNote.body}</p></> : <p>对方当天还没有记录。</p>}</section>}

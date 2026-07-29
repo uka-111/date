@@ -539,6 +539,7 @@ export type Database = {
       }
       current_couple_id: { Args: never; Returns: string }
       delete_daily_note: { Args: { p_date: string }; Returns: undefined }
+      delete_daily_photo: { Args: { p_photo_id: string }; Returns: string }
       is_couple_member: { Args: { p_couple_id: string }; Returns: boolean }
       leave_current_couple: { Args: never; Returns: undefined }
       mark_notification_read: {

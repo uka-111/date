@@ -144,4 +144,26 @@ $$;
 revoke all on function public.create_daily_photo(date, text, text) from public, anon;
 grant execute on function public.create_daily_photo(date, text, text) to authenticated;
 
+create or replace function public.delete_daily_photo(p_photo_id uuid)
+returns text
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_couple_id uuid := public.current_couple_id();
+  v_path text;
+begin
+  if auth.uid() is null or v_couple_id is null then raise exception 'Authentication required'; end if;
+  delete from public.daily_photos
+  where id = p_photo_id and couple_id = v_couple_id and uploaded_by = auth.uid()
+  returning storage_path into v_path;
+  if v_path is null then raise exception 'Photo not found'; end if;
+  return v_path;
+end;
+$$;
+
+revoke all on function public.delete_daily_photo(uuid) from public, anon;
+grant execute on function public.delete_daily_photo(uuid) to authenticated;
+
 alter publication supabase_realtime add table public.daily_photos;
