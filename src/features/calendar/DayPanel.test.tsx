@@ -1,0 +1,21 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
+import { createLocalRepository } from '../../storage/localRepository';
+import { DayPanel } from './DayPanel';
+
+it('switches to the partner memory as a read-only view', async () => {
+  const repository = createLocalRepository(localStorage);
+  repository.saveDailyNote({ ownerId: 'him', date: '2026-07-30', title: '我的记录', body: '我的内容', createdAt: '2026-07-30T00:00:00Z', updatedAt: '2026-07-30T00:00:00Z' });
+  repository.saveDailyNote({ ownerId: 'her', date: '2026-07-30', title: '她的记录', body: '她的内容', createdAt: '2026-07-30T00:00:00Z', updatedAt: '2026-07-30T00:00:00Z' });
+  const user = userEvent.setup();
+
+  render(<DayPanel date="2026-07-30" partnerId="him" availability={[]} repository={repository} onSaved={vi.fn()} />);
+
+  expect(screen.getByRole('button', { name: '我的' })).toHaveAttribute('aria-pressed', 'true');
+  await user.click(screen.getByRole('button', { name: '对方' }));
+  expect(screen.getByText('她的记录')).toBeVisible();
+  expect(screen.getByText('她的内容')).toBeVisible();
+  expect(screen.queryByRole('button', { name: '保存记录' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: '删除记录' })).not.toBeInTheDocument();
+});
