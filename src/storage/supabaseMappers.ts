@@ -6,7 +6,7 @@ type AvailabilityRow = { id: string; owner_id: string; date: string; periods: st
 type InvitationRow = { id: string; sender_id: string; recipient_id: string; date: string; periods: string[]; activities: string[]; note: string; status: string; created_at: string; updated_at: string; [key: string]: unknown };
 type EventRow = { id: string; invitation_id: string; actor_id: string; action: string; note: string | null; proposed_date: string | null; proposed_periods: string[] | null; proposed_activities: string[] | null; created_at: string; [key: string]: unknown };
 type NotificationRow = { id: string; recipient_id: string; invitation_id: string; kind: string; created_at: string; read_at: string | null; [key: string]: unknown };
-type DailyNoteRow = { date: string; title: string; body: string; created_at: string; updated_at: string; [key: string]: unknown };
+type DailyNoteRow = { created_by: string; date: string; title: string; body: string; created_at: string; updated_at: string; [key: string]: unknown };
 type PreferenceRow = { calendar_scale: string; [key: string]: unknown } | null;
 
 export interface SupabaseSnapshotRows {
@@ -82,8 +82,8 @@ export function mapNotification(row: NotificationRow, identities: Map<string, Pa
   return { id: row.id, recipientId: partnerId(row.recipient_id, identities), invitationId: row.invitation_id, kind: notificationKind(row.kind), createdAt: row.created_at, readAt: row.read_at };
 }
 
-export function mapDailyNote(row: DailyNoteRow) {
-  return { date: row.date, title: row.title, body: row.body, createdAt: row.created_at, updatedAt: row.updated_at };
+export function mapDailyNote(row: DailyNoteRow, identities: Map<string, PartnerId>) {
+  return { ownerId: partnerId(row.created_by, identities), date: row.date, title: row.title, body: row.body, createdAt: row.created_at, updatedAt: row.updated_at };
 }
 
 export function mapSnapshot(rows: SupabaseSnapshotRows, identities: Map<string, PartnerId>): BookingSnapshot {
@@ -93,7 +93,7 @@ export function mapSnapshot(rows: SupabaseSnapshotRows, identities: Map<string, 
     availability: rows.availabilities.map((row) => mapAvailability(row, identities)),
     invitations: rows.invitations.map((row) => mapInvitation(row, rows.events, identities)),
     notifications: rows.notifications.map((row) => mapNotification(row, identities)),
-    dailyNotes: rows.dailyNotes.map(mapDailyNote),
+    dailyNotes: rows.dailyNotes.map((row) => mapDailyNote(row, identities)),
     viewPreference: scale as CalendarScale,
   };
 }
