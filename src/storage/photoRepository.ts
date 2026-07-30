@@ -13,6 +13,7 @@ export interface PhotoInput {
   date: string;
   blob: Blob;
   title: string;
+  fileName?: string;
 }
 
 export interface PhotoRepository {

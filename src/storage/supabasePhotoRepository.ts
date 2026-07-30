@@ -5,11 +5,31 @@ import type { PhotoRepository, PhotoRecord } from './photoRepository';
 function extension(type: string) {
   if (type === 'image/png') return 'png';
   if (type === 'image/webp') return 'webp';
+  if (type === 'image/gif') return 'gif';
   return 'jpg';
 }
 
-export function normalizeImageType(type: string) {
-  return type === 'image/jpg' ? 'image/jpeg' : type;
+const imageTypesByExtension: Record<string, string> = {
+  gif: 'image/gif',
+  jfif: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  jpg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+};
+
+const imageTypeAliases: Record<string, string> = {
+  'image/jfif': 'image/jpeg',
+  'image/jpg': 'image/jpeg',
+  'image/pjpeg': 'image/jpeg',
+  'image/x-png': 'image/png',
+};
+
+export function normalizeImageType(type: string, fileName = '') {
+  const normalizedType = imageTypeAliases[type.trim().toLowerCase()] ?? type.trim().toLowerCase();
+  if (['image/gif', 'image/jpeg', 'image/png', 'image/webp'].includes(normalizedType)) return normalizedType;
+  const extensionFromName = fileName.toLowerCase().split('.').at(-1) ?? '';
+  return imageTypesByExtension[extensionFromName] ?? normalizedType;
 }
 
 export function createSupabasePhotoRepository(client: SupabaseClient<Database>, coupleId: string, userId: string): PhotoRepository {
@@ -39,8 +59,8 @@ export function createSupabasePhotoRepository(client: SupabaseClient<Database>, 
   return {
     list,
     async add(input) {
-      const mimeType = normalizeImageType(input.blob.type);
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(mimeType)) throw new Error('暂只支持 JPG、PNG 或 WebP 图片');
+      const mimeType = normalizeImageType(input.blob.type, input.fileName);
+      if (!['image/gif', 'image/jpeg', 'image/png', 'image/webp'].includes(mimeType)) throw new Error('暂只支持 JPG、PNG、WebP 或 GIF 图片');
       if (input.blob.size > 10485760) throw new Error('图片文件超过 10 MB，请压缩后再上传');
       const path = `${coupleId}/${input.date}/${crypto.randomUUID()}.${extension(mimeType)}`;
       const uploaded = await client.storage.from('date-photos').upload(path, input.blob, { contentType: mimeType, upsert: false });

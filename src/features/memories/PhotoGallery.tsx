@@ -11,8 +11,8 @@ export function PhotoGallery({ date, repository, ownerId, readOnly = false, onCh
   async function upload(event: React.ChangeEvent<HTMLInputElement>) {
     for (const file of Array.from(event.target.files ?? [])) {
       try {
-        if (!file.type.startsWith('image/')) throw new Error('请选择图片文件');
-        await repository.add({ date, blob: file, title: file.name.replace(/\.[^.]+$/, '') });
+        if (!file.type.startsWith('image/') && !/\.(gif|jpe?g|png|webp)$/i.test(file.name)) throw new Error('请选择 JPG、PNG、WebP 或 GIF 图片');
+        await repository.add({ date, blob: file, fileName: file.name, title: file.name.replace(/\.[^.]+$/, '') });
       }
       catch (caught) { setError(caught instanceof Error ? caught.message : '照片上传失败'); }
     }
@@ -33,7 +33,7 @@ export function PhotoGallery({ date, repository, ownerId, readOnly = false, onCh
     {!readOnly && <label className="upload-button" title="选择当天的照片">
       <span aria-hidden="true">+</span>
       添加照片
-      <input type="file" accept="image/*" multiple onChange={upload} />
+      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" multiple onChange={upload} />
     </label>}
     {error && <p role="alert">{error}</p>}
     {active && <div className="photo-viewer" role="dialog" aria-modal="true" aria-label="照片查看器"><button type="button" aria-label="关闭照片" onClick={() => setActive(null)}>关闭</button><img src={URL.createObjectURL(active.blob)} alt={active.title || '当天照片'} /><p>{active.title}</p></div>}
