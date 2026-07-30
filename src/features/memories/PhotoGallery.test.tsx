@@ -39,3 +39,14 @@ it('uses a compact accessible delete control without showing a photo name', asyn
   expect(confirm).toHaveBeenCalledWith('确定删除这张照片吗？');
   expect(repository.delete).not.toHaveBeenCalled();
 });
+
+it('shows only the selected member photos for the same day', async () => {
+  const records: PhotoRecord[] = [
+    { id: 'photo-him', ownerId: 'him', date: '2026-07-30', blob: new Blob(['him'], { type: 'image/jpeg' }), thumbnail: new Blob(['him'], { type: 'image/jpeg' }), title: '', createdAt: '2026-07-30T12:00:00.000Z', order: 0 },
+    { id: 'photo-her', ownerId: 'her', date: '2026-07-30', blob: new Blob(['her'], { type: 'image/jpeg' }), thumbnail: new Blob(['her'], { type: 'image/jpeg' }), title: '', createdAt: '2026-07-30T12:01:00.000Z', order: 1 },
+  ];
+
+  render(<PhotoGallery date="2026-07-30" repository={createRepository(records)} ownerId="him" />);
+
+  expect(await screen.findAllByRole('img')).toHaveLength(1);
+});

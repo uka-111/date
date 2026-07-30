@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, auth, extensions;
-select plan(7);
+select plan(9);
 
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -33,6 +33,12 @@ select throws_ok($$delete from public.daily_notes where created_by = '00000000-0
 select has_table('public', 'daily_photos', 'private photo metadata table exists');
 select has_function('public', 'create_daily_photo', 'photo metadata RPC exists');
 select lives_ok($$select public.create_daily_photo('2026-08-12', '00000000-0000-0000-0000-00000000cc03/2026-08-12/photo.jpg', 'image/jpeg')$$, 'member records own private photo');
+
+reset role;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000bb02', true);
+set local role authenticated;
+select lives_ok($$select public.create_daily_photo('2026-08-12', '00000000-0000-0000-0000-00000000cc03/2026-08-12/partner-photo.jpg', 'image/jpeg')$$, 'second member records an independent same-day photo');
+select is((select count(*)::integer from public.daily_photos where date = '2026-08-12'), 2, 'same day retains both member photos');
 
 select * from finish();
 rollback;

@@ -41,6 +41,7 @@ export function BookingDataScreen({ repository, coupleId, userId, photoRepositor
     repository,
     () => void reload(),
     setSyncError,
+    partnerId,
   );
 
   return <AppShell partnerId={partnerId} displayName={displayName} email={email} notifications={state.snapshot.notifications} onNotificationClick={() => setShowNotifications((visible) => !visible)} onSignOut={onSignOut} onLeaveCouple={onLeaveCouple} onUpdateDisplayName={onUpdateDisplayName} onUpdateEmail={onUpdateEmail} onUpdatePassword={onUpdatePassword}>

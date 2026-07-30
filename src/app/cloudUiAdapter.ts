@@ -1,13 +1,14 @@
 import type { DateBookingRepository as CloudRepository } from './bookingRepository';
 import type { BookingSnapshot } from './bookingSnapshot';
 import type { DateBookingRepository as LegacyRepository } from './repository';
-import type { Invitation } from '../domain/models';
+import type { Invitation, PartnerId } from '../domain/models';
 
 export function createCloudUiAdapter(
   snapshot: BookingSnapshot,
   repository: CloudRepository,
   onChanged: () => void,
   onError: (message: string) => void,
+  currentPartnerId: PartnerId,
 ): LegacyRepository {
   const run = (operation: () => Promise<unknown>) => {
     void operation().then(onChanged).catch((error: unknown) => {
@@ -45,7 +46,9 @@ export function createCloudUiAdapter(
     saveInvitationWithNotification: (invitation) => submitInvitation(invitation),
     markNotificationRead: (id) => run(() => repository.markNotificationRead(id)),
     saveDailyNote: (value) => run(() => repository.saveDailyNote({ date: value.date, title: value.title, body: value.body })),
-    getDailyNote: (date) => snapshot.dailyNotes.find((note) => note.date === date),
+    getDailyNote: (date) => snapshot.dailyNotes.find(
+      (note) => note.date === date && note.ownerId === currentPartnerId,
+    ),
     deleteDailyNote: (date) => run(() => repository.deleteDailyNote(date)),
     saveViewPreference: (scale) => run(() => repository.saveViewPreference(scale)),
     reset: () => undefined,
