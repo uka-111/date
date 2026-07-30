@@ -66,14 +66,21 @@ export function DayPanel({
         onSaved={onSaved}
       />
       <div className="memory-sections">
-        <div className="memory-owner-switch" aria-label="当天回忆查看对象">
-          <button type="button" aria-pressed={isOwnMemory} onClick={() => setMemoryOwner(partnerId)}>我的</button>
-          <button type="button" aria-pressed={!isOwnMemory} onClick={() => setMemoryOwner(partnerIdToView)}>对方</button>
+        <button
+          className="memory-owner-switch"
+          type="button"
+          aria-pressed={isOwnMemory}
+          title={`切换到${isOwnMemory ? '对方' : '我的'}当天回忆`}
+          onClick={() => setMemoryOwner(isOwnMemory ? partnerIdToView : partnerId)}
+        >
+          {isOwnMemory ? '我的' : '对方'}
+        </button>
+        <div className="memory-content">
+          {photoRepository && <PhotoGallery date={date} repository={photoRepository} ownerId={memoryOwner} readOnly={!isOwnMemory} onChanged={onSaved} />}
+          {isOwnMemory
+            ? <DailyNoteEditor date={date} repository={repository} onSaved={onSaved} />
+            : <section className="daily-note daily-note-readonly" aria-label="对方当天记录"><h4>当天记录</h4>{viewedNote ? <><span className="note-field-label">记录标题</span><p className="readonly-note-field">{viewedNote.title || '当天记录'}</p><span className="note-field-label">当天记录</span><p className="readonly-note-field readonly-note-body">{viewedNote.body}</p></> : <p>对方当天还没有记录。</p>}</section>}
         </div>
-        {photoRepository && <PhotoGallery date={date} repository={photoRepository} ownerId={memoryOwner} readOnly={!isOwnMemory} onChanged={onSaved} />}
-        {isOwnMemory
-          ? <DailyNoteEditor date={date} repository={repository} onSaved={onSaved} />
-          : <section className="daily-note daily-note-readonly" aria-label="对方当天记录"><h4>当天记录</h4>{viewedNote ? <><span className="note-field-label">记录标题</span><p className="readonly-note-field">{viewedNote.title || '当天记录'}</p><span className="note-field-label">当天记录</span><p className="readonly-note-field readonly-note-body">{viewedNote.body}</p></> : <p>对方当天还没有记录。</p>}</section>}
       </div>
     </section>
   );

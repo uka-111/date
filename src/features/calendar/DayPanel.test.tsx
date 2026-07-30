@@ -12,8 +12,11 @@ it('switches to the partner memory as a read-only view', async () => {
 
   render(<DayPanel date="2026-07-30" partnerId="him" availability={[]} repository={repository} onSaved={vi.fn()} />);
 
-  expect(screen.getByRole('button', { name: '我的' })).toHaveAttribute('aria-pressed', 'true');
-  await user.click(screen.getByRole('button', { name: '对方' }));
+  const ownerSwitch = screen.getByRole('button', { name: '我的' });
+  expect(ownerSwitch).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.queryByRole('button', { name: '对方' })).not.toBeInTheDocument();
+  await user.click(ownerSwitch);
+  expect(screen.getByRole('button', { name: '对方' })).toHaveAttribute('aria-pressed', 'false');
   expect(screen.getByText('记录标题')).toBeVisible();
   expect(screen.getByText('她的记录')).toBeVisible();
   expect(screen.getAllByText('当天记录')).toHaveLength(2);
