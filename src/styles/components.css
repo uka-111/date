@@ -578,6 +578,12 @@
 .upload-button > span { font-size: 1.25rem; line-height: 1; }
 .upload-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .daily-note { display: grid; gap: 8px; }
+.daily-note-actions { display: flex; align-items: center; justify-content: flex-start; gap: 8px; }
+.daily-note-actions button { width: fit-content; min-height: 34px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-weight: 700; padding: 7px 11px; }
+.daily-note-actions .daily-note-save { border-color: var(--coral); background: var(--coral); color: white; }
+.daily-note-actions .daily-note-save:hover { background: var(--coral-dark); }
+.daily-note-actions .daily-note-delete { background: var(--surface); color: var(--error); }
+.daily-note-actions .daily-note-delete:hover { border-color: var(--error); background: color-mix(in srgb, var(--error) 10%, var(--surface)); }
 
 .calendar-day[data-primary-state="confirmed"] {
   background: var(--confirmed-fill);
