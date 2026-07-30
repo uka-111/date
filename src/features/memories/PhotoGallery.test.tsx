@@ -1,8 +1,12 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import type { PhotoRecord, PhotoRepository } from '../../storage/photoRepository';
 import { PhotoGallery } from './PhotoGallery';
+
+vi.mock('heic2any', () => ({
+  default: vi.fn(async () => new Blob(['jpeg photo'], { type: 'image/jpeg' })),
+}));
 
 function createRepository(records: PhotoRecord[]): PhotoRepository {
   return {
@@ -49,4 +53,20 @@ it('shows only the selected member photos for the same day', async () => {
   render(<PhotoGallery date="2026-07-30" repository={createRepository(records)} ownerId="him" />);
 
   expect(await screen.findAllByRole('img')).toHaveLength(1);
+});
+
+it('converts a mobile HEIC photo to JPEG before uploading', async () => {
+  const repository = createRepository([]);
+  render(<PhotoGallery date="2026-07-30" repository={repository} />);
+
+  const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+  expect(input).not.toBeNull();
+  const heicPhoto = new File(['mobile photo'], 'IMG_1234.HEIC', { type: 'image/heic' });
+  fireEvent.change(input!, { target: { files: [heicPhoto] } });
+
+  await waitFor(() => expect(repository.add).toHaveBeenCalled());
+  expect(repository.add).toHaveBeenCalledWith(expect.objectContaining({
+    blob: expect.objectContaining({ type: 'image/jpeg' }),
+    fileName: 'IMG_1234.jpg',
+  }));
 });

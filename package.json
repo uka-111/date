@@ -13,6 +13,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",
     "date-fns": "latest",
+    "heic2any": "^0.0.4",
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "latest"
