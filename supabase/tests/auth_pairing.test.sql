@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, auth, extensions;
 
-select plan(48);
+select plan(49);
 
 create function pg_temp.normalized_function_definition(p_function regprocedure)
 returns text
@@ -746,6 +746,18 @@ select ok(
   ) ~
     'perform[[:space:]]+1[[:space:]]+from[[:space:]]+public\.couples[[:space:]]+as[[:space:]]+c[[:space:]]+where[[:space:]]+c\.id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+for[[:space:]]+update',
   'regenerate locks the selected public.couples row before counting members'
+);
+
+select ok(
+  pg_temp.normalized_function_definition(
+    'public.regenerate_couple_invite()'::regprocedure
+  ) ~
+    'where[[:space:]]+cm\.user_id[[:space:]]*=[[:space:]]*v_user_id[[:space:]]+and[[:space:]]+cm\.left_at[[:space:]]+is[[:space:]]+null'
+    and pg_temp.normalized_function_definition(
+      'public.regenerate_couple_invite()'::regprocedure
+    ) ~
+    'where[[:space:]]+cm\.couple_id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+and[[:space:]]+cm\.left_at[[:space:]]+is[[:space:]]+null',
+  'regenerate only uses the current membership and active members after unpairing recovery'
 );
 
 select ok(

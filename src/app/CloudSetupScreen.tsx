@@ -101,7 +101,7 @@ export function CloudSetupScreen({ userId, displayName, email = '', partnerId = 
     <main className="entry-page session-page">
       <section className="entry-card session-card card">
         <p className="session-eyebrow">{displayName}，欢迎回来</p>
-        <button className="icon-button settings-trigger session-settings-trigger" type="button" aria-label="设置" onClick={() => setSettingsOpen(true)}>⚙ 设置</button>
+        <button className="icon-button settings-trigger session-settings-trigger" type="button" aria-label="设置" onClick={() => setSettingsOpen(true)}>⚙</button>
         <h1>{memberCount >= 2 ? '双方已配对' : '等待对方加入'}</h1>
         <p>云端空间已经建立。共享日历会在下一阶段接入，这里不会读取或导入本机旧数据。</p>
         {memberCount === 1 && (

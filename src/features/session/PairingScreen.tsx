@@ -127,7 +127,7 @@ export function PairingScreen({ userId, displayName, onCreate, onRedeem, onConti
               <button className="identity-option" type="button" aria-pressed={identity === 'her'} onClick={() => setIdentity('her')}>我是她</button>
             </div>
             {error && <p role="alert">{error}</p>}
-            <button type="button" disabled={loading} onClick={() => void createSpace()}>{loading ? '正在生成...' : '生成邀请码'}</button>
+            <button className="identity-submit" type="button" disabled={loading} onClick={() => void createSpace()}>{loading ? '正在生成...' : '生成邀请码'}</button>
           </section>
         ) : (
           <form onSubmit={joinSpace}>
