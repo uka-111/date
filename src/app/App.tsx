@@ -9,6 +9,7 @@ import type { DateBookingRepository } from './bookingRepository';
 import { SessionProvider, useSession } from './SessionProvider';
 import { createSupabaseBookingRepository } from '../storage/supabaseBookingRepository';
 import { getSupabaseBrowserRuntime } from '../lib/supabaseClient';
+import { createPhotoRepository } from '../storage/photoRepository';
 import { BrowserRouter } from 'react-router-dom';
 
 function AppContent({ bookingRepositoryFactory }: { bookingRepositoryFactory?: (coupleId: string, userId: string) => DateBookingRepository }) {
@@ -40,7 +41,7 @@ function AppContent({ bookingRepositoryFactory }: { bookingRepositoryFactory?: (
         const repository = bookingRepositoryFactory
           ? bookingRepositoryFactory(session.state.coupleId, session.state.userId)
           : createSupabaseBookingRepository(getSupabaseBrowserRuntime().client, session.state.coupleId, session.state.userId);
-        return <BookingDataScreen key={session.state.userId} repository={repository} displayName={session.state.displayName} email={session.state.email} partnerId={session.state.partnerId} onSignOut={session.signOut} onLeaveCouple={session.leaveCurrentCouple} onUpdateDisplayName={session.updateDisplayName} onUpdateEmail={session.updateEmail} onUpdatePassword={session.updatePassword} />;
+        return <BookingDataScreen key={session.state.userId} repository={repository} coupleId={session.state.coupleId} userId={session.state.userId} photoRepository={bookingRepositoryFactory ? createPhotoRepository() : undefined} displayName={session.state.displayName} email={session.state.email} partnerId={session.state.partnerId} onSignOut={session.signOut} onLeaveCouple={session.leaveCurrentCouple} onUpdateDisplayName={session.updateDisplayName} onUpdateEmail={session.updateEmail} onUpdatePassword={session.updatePassword} />;
       }
       return (
         <CloudSetupScreen

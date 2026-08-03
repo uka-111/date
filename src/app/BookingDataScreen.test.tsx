@@ -13,6 +13,7 @@ it('provides a return link on an invitation details page', () => {
     createFakeBookingRepository({ invitations: [invitation] }),
     vi.fn(),
     vi.fn(),
+    'her',
   );
 
   render(

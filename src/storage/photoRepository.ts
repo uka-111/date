@@ -1,5 +1,6 @@
 export interface PhotoRecord {
   id: string;
+  ownerId?: 'him' | 'her';
   date: string;
   blob: Blob;
   thumbnail: Blob;
@@ -12,6 +13,7 @@ export interface PhotoInput {
   date: string;
   blob: Blob;
   title: string;
+  fileName?: string;
 }
 
 export interface PhotoRepository {

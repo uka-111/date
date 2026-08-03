@@ -10,7 +10,9 @@ import { InvitationForm } from '../features/invitations/InvitationForm';
 import { InvitationList } from '../features/invitations/InvitationList';
 import { NotificationList } from '../features/notifications/NotificationList';
 import type { PartnerId } from '../domain/models';
-import { createPhotoRepository } from '../storage/photoRepository';
+import { createSupabasePhotoRepository } from '../storage/supabasePhotoRepository';
+import { getSupabaseBrowserRuntime } from '../lib/supabaseClient';
+import type { PhotoRepository } from '../storage/photoRepository';
 
 export function InvitationRoute({ partnerId, repository, onChanged }: { partnerId: PartnerId; repository: ReturnType<typeof createCloudUiAdapter>; onChanged: () => void }) {
   const { id } = useParams();
@@ -24,12 +26,12 @@ export function InvitationRoute({ partnerId, repository, onChanged }: { partnerI
   );
 }
 
-export function BookingDataScreen({ repository, displayName, email, partnerId, onSignOut, onLeaveCouple, onUpdateDisplayName, onUpdateEmail, onUpdatePassword }: { repository: DateBookingRepository; displayName: string; email: string; partnerId: PartnerId; onSignOut: () => void; onLeaveCouple: () => Promise<void>; onUpdateDisplayName: (name: string) => Promise<string>; onUpdateEmail: (email: string) => Promise<void>; onUpdatePassword: (password: string) => Promise<void> }) {
+export function BookingDataScreen({ repository, coupleId, userId, photoRepository: photoRepositoryOverride, displayName, email, partnerId, onSignOut, onLeaveCouple, onUpdateDisplayName, onUpdateEmail, onUpdatePassword }: { repository: DateBookingRepository; coupleId: string; userId: string; photoRepository?: PhotoRepository; displayName: string; email: string; partnerId: PartnerId; onSignOut: () => void; onLeaveCouple: () => Promise<void>; onUpdateDisplayName: (name: string) => Promise<string>; onUpdateEmail: (email: string) => Promise<void>; onUpdatePassword: (password: string) => Promise<void> }) {
   const { state, reload } = useCloudBookingData(repository);
   const [syncError, setSyncError] = useState('');
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
-  const photoRepository = useMemo(() => createPhotoRepository(), []);
+  const photoRepository = useMemo(() => photoRepositoryOverride ?? createSupabasePhotoRepository(getSupabaseBrowserRuntime().client, coupleId, userId), [coupleId, photoRepositoryOverride, userId]);
 
   if (state.status === 'loading') return <main className="session-state"><p>正在加载共享日历...</p></main>;
   if (state.status === 'error') return <main className="session-state"><p role="alert">{state.message}</p><button type="button" onClick={() => void reload()}>重试</button></main>;
@@ -39,6 +41,7 @@ export function BookingDataScreen({ repository, displayName, email, partnerId, o
     repository,
     () => void reload(),
     setSyncError,
+    partnerId,
   );
 
   return <AppShell partnerId={partnerId} displayName={displayName} email={email} notifications={state.snapshot.notifications} onNotificationClick={() => setShowNotifications((visible) => !visible)} onSignOut={onSignOut} onLeaveCouple={onLeaveCouple} onUpdateDisplayName={onUpdateDisplayName} onUpdateEmail={onUpdateEmail} onUpdatePassword={onUpdatePassword}>

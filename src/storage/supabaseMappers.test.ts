@@ -21,7 +21,7 @@ describe('Supabase mappers', () => {
       availability: [expect.objectContaining({ ownerId: 'her' })],
       invitations: [expect.objectContaining({ senderId: 'him', recipientId: 'her', activity: ['散步', '吃饭'], history: [expect.objectContaining({ actorId: 'him', action: 'created' })] })],
       notifications: [expect.objectContaining({ recipientId: 'her' })],
-      dailyNotes: [expect.objectContaining({ title: '夏夜' })],
+      dailyNotes: [expect.objectContaining({ title: '夏夜', ownerId: 'him' })],
       viewPreference: 'year',
     });
   });

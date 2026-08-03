@@ -54,6 +54,7 @@ export interface Invitation {
 export type CalendarScale = 'month' | 'year' | 'five_years';
 
 export interface DailyNote {
+  ownerId?: PartnerId;
   date: string;
   title: string;
   body: string;
