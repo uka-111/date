@@ -104,6 +104,8 @@ export function PairingScreen({ userId, displayName, onCreate, onRedeem, onConti
   function backToChoice() {
     setMode('choice');
     setIdentity(null);
+    setCode('');
+    setCreated(null);
     setError('');
   }
 
@@ -116,6 +118,7 @@ export function PairingScreen({ userId, displayName, onCreate, onRedeem, onConti
 
         {created ? (
           <>
+            <button className="pairing-back-button" type="button" aria-label="返回" onClick={backToChoice}>‹</button>
             <InviteResultView result={created} />
             {error && <p role="alert">{error}</p>}
             <button type="button" disabled={loading} onClick={() => void continueIntoSpace()}>{loading ? '正在刷新...' : '刷新配对状态'}</button>

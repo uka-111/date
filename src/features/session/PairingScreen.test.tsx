@@ -64,6 +64,32 @@ it('shows a newly-created invite in memory and waits for explicit continue', asy
   expect(onContinue).toHaveBeenCalledOnce();
 });
 
+it('returns from the created invite view with the same arrow-only control', async () => {
+  const user = userEvent.setup();
+  render(
+    <PairingScreen
+      userId="user-a"
+      displayName="小雨"
+      onCreate={vi.fn().mockResolvedValue({ inviteCode: 'ABC123XYZ789', expiresAt: '2026-07-29T10:00:00.000Z' })}
+      onRedeem={vi.fn()}
+      onContinue={vi.fn()}
+      onSignOut={vi.fn()}
+    />,
+  );
+
+  await user.click(screen.getByRole('button', { name: '创建我们的空间' }));
+  await user.click(screen.getByRole('button', { name: '我是她' }));
+  await user.click(screen.getByRole('button', { name: '生成邀请码' }));
+
+  const backButton = await screen.findByRole('button', { name: '返回' });
+  expect(backButton).toHaveTextContent('‹');
+  await user.click(backButton);
+
+  expect(screen.getByRole('button', { name: '创建我们的空间' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '加入对方的空间' })).toBeInTheDocument();
+  expect(screen.queryByText('ABC123XYZ789')).not.toBeInTheDocument();
+});
+
 it('keeps a failed join code and normalizes successful submissions', async () => {
   const onRedeem = vi.fn().mockRejectedValueOnce(new Error('邀请码不可用')).mockResolvedValueOnce({ coupleId: 'couple-1', partnerId: 'him' });
   const onContinue = vi.fn();
