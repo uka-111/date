@@ -9,7 +9,7 @@ it('returns an empty versioned database when storage is empty', () => {
   const repository = createLocalRepository(localStorage);
 
   expect(repository.read()).toEqual({
-    version: 2,
+    version: 3,
     availability: [],
     invitations: [],
     notifications: [],
@@ -26,6 +26,7 @@ it('migrates v1 data on read and persists it once', () => {
       ...invitationBuilder(),
       periods: undefined,
       period: 'evening',
+      activity: '看电影',
     }],
     notifications: [],
   }));
@@ -36,6 +37,41 @@ it('migrates v1 data on read and persists it once', () => {
   expect(setItem).toHaveBeenCalledTimes(1);
   repository.read();
   expect(setItem).toHaveBeenCalledTimes(1);
+  setItem.mockRestore();
+});
+
+it('migrates v2 data on first read and writes back v3 data', () => {
+  localStorage.setItem('couple-date-booking', JSON.stringify({
+    version: 2,
+    availability: [],
+    invitations: [{ ...invitationBuilder(), activity: '看电影' }],
+    notifications: [],
+    dailyNotes: [],
+    viewPreference: 'month',
+  }));
+  const setItem = vi.spyOn(Storage.prototype, 'setItem');
+  const repository = createLocalRepository(localStorage);
+
+  expect(repository.read().version).toBe(3);
+  expect(setItem).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(localStorage.getItem('couple-date-booking')!).version).toBe(3);
+  setItem.mockRestore();
+});
+
+it('does not write back data already at v3', () => {
+  localStorage.setItem('couple-date-booking', JSON.stringify({
+    version: 3,
+    availability: [],
+    invitations: [],
+    notifications: [],
+    dailyNotes: [],
+    viewPreference: 'month',
+  }));
+  const setItem = vi.spyOn(Storage.prototype, 'setItem');
+  const repository = createLocalRepository(localStorage);
+
+  expect(repository.read().version).toBe(3);
+  expect(setItem).not.toHaveBeenCalled();
   setItem.mockRestore();
 });
 
@@ -122,5 +158,5 @@ it('offers a reset path for invalid stored JSON', () => {
   expect(() => repository.read()).toThrow('本地数据无法读取');
 
   repository.reset();
-  expect(repository.read().version).toBe(2);
+  expect(repository.read().version).toBe(3);
 });

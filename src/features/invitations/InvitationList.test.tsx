@@ -47,3 +47,33 @@ it('treats an adjustment as waiting for the original sender', () => {
     within(screen.getByLabelText('待我处理')).getByText('看电影'),
   ).toBeInTheDocument();
 });
+
+it('shows multiple activities as individual tags', () => {
+  const { container } = render(
+    <InvitationList
+      partnerId="him"
+      invitations={[
+        invitationBuilder({
+          senderId: 'her',
+          recipientId: 'him',
+          activity: ['看电影', '一起吃饭'],
+          date: '2026-07-25',
+          periods: ['evening'],
+        }),
+      ]}
+      today="2026-07-18"
+      onSelect={vi.fn()}
+    />,
+  );
+
+  const tags = container.querySelectorAll('.activity-tag');
+
+  expect(tags).toHaveLength(2);
+  expect(tags[0]).toHaveTextContent('看电影');
+  expect(tags[1]).toHaveTextContent('一起吃饭');
+  expect(
+    screen.getByRole('button', {
+      name: '看电影、一起吃饭，2026-07-25 · 晚上',
+    }),
+  ).toBeInTheDocument();
+});

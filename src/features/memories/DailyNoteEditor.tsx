@@ -35,7 +35,9 @@ export function DailyNoteEditor({ date, repository, onSaved }: { date: string; r
     <textarea id={`note-body-${date}`} value={body} onChange={(event) => { setBody(event.target.value); setDirty(true); }} />
     {dirty && <p role="status">有未保存的修改</p>}
     {status && <p role="status">{status}</p>}
-    <button type="button" onClick={save}>保存记录</button>
-    {repository.getDailyNote(date) && <button type="button" onClick={remove}>删除记录</button>}
+    <div className="daily-note-actions">
+      <button className="daily-note-save" type="button" onClick={save}>保存记录</button>
+      {repository.getDailyNote(date) && <button className="daily-note-delete" type="button" onClick={remove}>删除记录</button>}
+    </div>
   </section>;
 }

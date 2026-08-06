@@ -34,7 +34,7 @@ export interface InvitationHistoryEntry {
   note?: string;
   proposedDate?: string;
   proposedPeriods?: Period[];
-  proposedActivity?: string;
+  proposedActivity?: string[];
 }
 
 export interface Invitation {
@@ -43,7 +43,7 @@ export interface Invitation {
   recipientId: PartnerId;
   date: string;
   periods: Period[];
-  activity: string;
+  activity: string[];
   note: string;
   status: InvitationStatus;
   createdAt: string;
@@ -54,6 +54,7 @@ export interface Invitation {
 export type CalendarScale = 'month' | 'year' | 'five_years';
 
 export interface DailyNote {
+  ownerId?: PartnerId;
   date: string;
   title: string;
   body: string;

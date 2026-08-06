@@ -1,4 +1,5 @@
 import type { Invitation, PartnerId, Period } from '../../domain/models';
+import { ActivityTags } from './ActivityTags';
 
 const periodLabels: Record<Period, string> = {
   all_day: '全天',
@@ -32,10 +33,20 @@ function InvitationGroup({
         <ul>
           {invitations.map((invitation) => (
             <li key={invitation.id}>
-              <button className="schedule-card" type="button" onClick={() => onSelect(invitation)}>
-                <strong>{invitation.activity}</strong>
-                <span>
-                  {invitation.date} · {invitation.periods.map((period) => periodLabels[period]).join('、')}
+              <button
+                className="schedule-card"
+                type="button"
+                onClick={() => onSelect(invitation)}
+              >
+                <strong>
+                  <ActivityTags activities={invitation.activity} />
+                </strong>
+                <span className="visually-hidden">，</span>
+                <span className="schedule-meta">
+                  {invitation.date} ·{' '}
+                  {invitation.periods
+                    .map((period) => periodLabels[period])
+                    .join('、')}
                 </span>
               </button>
             </li>

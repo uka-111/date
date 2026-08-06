@@ -1,5 +1,6 @@
 export interface PhotoRecord {
   id: string;
+  ownerId?: 'him' | 'her';
   date: string;
   blob: Blob;
   thumbnail: Blob;
@@ -12,6 +13,7 @@ export interface PhotoInput {
   date: string;
   blob: Blob;
   title: string;
+  fileName?: string;
 }
 
 export interface PhotoRepository {
@@ -22,7 +24,7 @@ export interface PhotoRepository {
   count(date: string): Promise<number>;
 }
 
-export const MAX_LOCAL_PHOTOS_PER_DAY = 6;
+export const MAX_LOCAL_PHOTOS_PER_DAY = 30;
 const memory = new Map<string, PhotoRecord>();
 
 export function createPhotoRepository(
