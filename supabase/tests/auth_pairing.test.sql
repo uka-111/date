@@ -790,5 +790,12 @@ select ok(
   'a new account keeps its selected identity when it has no active membership'
 );
 
+select ok(
+  pg_temp.normalized_function_definition(
+    'public.redeem_pairing_invite(text)'::regprocedure
+  ) ~ 'from[[:space:]]+public\.couple_members[[:space:]]+as[[:space:]]+historical_member[[:space:]]+where[[:space:]]+historical_member\.couple_id[[:space:]]*=[[:space:]]*first_member\.couple_id',
+  'redeem qualifies the historical couple id to avoid the output-column name collision'
+);
+
 select * from finish();
 rollback;
