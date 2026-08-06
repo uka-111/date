@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, auth, extensions;
 
-select plan(50);
+select plan(51);
 
 create function pg_temp.normalized_function_definition(p_function regprocedure)
 returns text
@@ -781,6 +781,13 @@ select ok(
     and to_regprocedure('public.create_pairing_invite(public.partner_identity)') is not null
     and to_regprocedure('public.redeem_pairing_invite(text)') is not null,
   'pairing uses a pending invite before choosing a new or historical couple'
+);
+
+select ok(
+  pg_temp.normalized_function_definition(
+    'public.create_pairing_invite(public.partner_identity)'::regprocedure
+  ) ~ 'coalesce\([[:space:]]*v_existing_identity[[:space:]]*,[[:space:]]*p_identity[[:space:]]*\)',
+  'a new account keeps its selected identity when it has no active membership'
 );
 
 select * from finish();
