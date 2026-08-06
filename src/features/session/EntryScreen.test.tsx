@@ -13,7 +13,7 @@ it('shows the shared calendar after identity selection', () => {
   render(<App />);
 
   expect(screen.getByRole('grid', { name: '共享月历' })).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: '发起约会' })).toHaveAttribute(
+  expect(screen.getByRole('link', { name: '发起邀请' })).toHaveAttribute(
     'href',
     '/invite',
   );

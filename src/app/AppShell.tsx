@@ -47,8 +47,8 @@ export function AppShell({
           日历
         </NavLink>
         <NavLink to="/invite">
-          <span aria-hidden="true">💌</span>
-          发起约会
+          <span aria-hidden="true">✉</span>
+          发起邀请
         </NavLink>
         <NavLink to="/invitations">
           <span aria-hidden="true">💕</span>

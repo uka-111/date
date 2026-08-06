@@ -8,7 +8,7 @@ test('both partners can complete a date invitation', async ({ page }) => {
   await page.getByRole('button', { name: '我是他' }).click();
 
   await expect(page.getByRole('grid', { name: '共享月历' })).toBeVisible();
-  await page.getByRole('link', { name: '发起约会' }).click();
+  await page.getByRole('link', { name: '发起邀请' }).click();
   await page.getByLabel('日期').fill('2026-07-25');
   await page.getByLabel('下午').check();
   await page.getByLabel('晚上').check();

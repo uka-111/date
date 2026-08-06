@@ -20,7 +20,7 @@ it('provides keyboard-accessible primary navigation', () => {
     screen.getByRole('navigation', { name: '主要导航' }),
   ).toBeInTheDocument();
   expect(screen.getByRole('link', { name: '日历' })).toHaveAttribute('href', '/');
-  expect(screen.getByRole('link', { name: '发起约会' })).toHaveAttribute(
+  expect(screen.getByRole('link', { name: '发起邀请' })).toHaveAttribute(
     'href',
     '/invite',
   );

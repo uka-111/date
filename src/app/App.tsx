@@ -149,7 +149,7 @@ function AuthenticatedApp({ partnerId }: { partnerId: PartnerId }) {
             path="/invite"
             element={
               <section aria-labelledby="new-invitation-heading">
-                <h1 id="new-invitation-heading">发起新的约会</h1>
+                <h1 id="new-invitation-heading">发起新的邀请</h1>
                 <InvitationForm
                   partnerId={partnerId}
                   repository={repository}
