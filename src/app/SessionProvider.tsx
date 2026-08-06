@@ -36,7 +36,7 @@ interface SessionValue {
   signUp(input: SignUpInput): Promise<SignUpResult>;
   signOut(): Promise<void>;
   reload(): Promise<void>;
-  createCouple(identity: PartnerId): Promise<PairingResult>;
+  createPairingInvite(identity: PartnerId): Promise<InviteResult>;
   redeemInvite(code: string): Promise<PairingResult>;
   regenerateInvite(): Promise<InviteResult>;
   leaveCurrentCouple(): Promise<void>;
@@ -219,8 +219,8 @@ export function SessionProvider({
       async reload() {
         await loadRestoredSession(requiredGateway(), true);
       },
-      createCouple(identity) {
-        return requiredGateway().createCouple(identity);
+      createPairingInvite(identity) {
+        return requiredGateway().createPairingInvite(identity);
       },
       redeemInvite(code) {
         return requiredGateway().redeemInvite(code);

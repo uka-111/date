@@ -44,7 +44,7 @@ it('shows a newly-created invite in memory and waits for explicit continue', asy
       userId="user-a"
       displayName="小雨"
       onCreate={vi.fn().mockResolvedValue({
-        coupleId: 'couple-1', partnerId: 'her', inviteCode: 'ABC123XYZ789', expiresAt: '2026-07-29T10:00:00.000Z',
+        inviteCode: 'ABC123XYZ789', expiresAt: '2026-07-29T10:00:00.000Z',
       })}
       onRedeem={vi.fn()}
       onContinue={onContinue}
@@ -60,7 +60,7 @@ it('shows a newly-created invite in memory and waits for explicit continue', asy
   expect(screen.getByText(/7 天有效，使用后失效/)).toBeInTheDocument();
   expect(screen.getByText(/2026/)).toBeInTheDocument();
   expect(onContinue).not.toHaveBeenCalled();
-  await user.click(screen.getByRole('button', { name: '进入我们的空间' }));
+  await user.click(screen.getByRole('button', { name: '刷新配对状态' }));
   expect(onContinue).toHaveBeenCalledOnce();
 });
 
@@ -100,7 +100,7 @@ it('clears a created invite when the unpaired user changes', async () => {
   const user = userEvent.setup();
   const common = {
     displayName: '小雨',
-    onCreate: vi.fn().mockResolvedValue({ coupleId: 'couple-1', partnerId: 'her', inviteCode: 'ABC123XYZ789', expiresAt: '2026-07-29T10:00:00.000Z' }),
+    onCreate: vi.fn().mockResolvedValue({ inviteCode: 'ABC123XYZ789', expiresAt: '2026-07-29T10:00:00.000Z' }),
     onRedeem: vi.fn(),
     onContinue: vi.fn(),
     onSignOut: vi.fn(),

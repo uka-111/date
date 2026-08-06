@@ -1,18 +1,18 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import type { PairingResult } from '../../auth/authGateway';
+import type { InviteResult, PairingResult } from '../../auth/authGateway';
 import type { PartnerId } from '../../domain/models';
 import { useSignOutAction } from './useSignOutAction';
 
 interface PairingScreenProps {
   userId: string;
   displayName: string;
-  onCreate(identity: PartnerId): Promise<PairingResult>;
+  onCreate(identity: PartnerId): Promise<InviteResult>;
   onRedeem(code: string): Promise<PairingResult>;
   onContinue(): Promise<void> | void;
   onSignOut(): Promise<void> | void;
 }
 
-function InviteResult({ result }: { result: PairingResult }) {
+function InviteResultView({ result }: { result: InviteResult }) {
   const expiry = result.expiresAt ? new Date(result.expiresAt).toLocaleString('zh-CN') : '';
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState('');
@@ -30,8 +30,8 @@ function InviteResult({ result }: { result: PairingResult }) {
 
   return (
     <section className="invite-result" aria-labelledby="invite-result-heading">
-      <h2 id="invite-result-heading">空间已经准备好了</h2>
-      <p>把这枚邀请码交给对方：</p>
+      <h2 id="invite-result-heading">配对请求已准备好</h2>
+      <p>把这枚邀请码交给对方，双方确认后会建立空间：</p>
       <code className="invite-code" aria-label="邀请码文本">{result.inviteCode}</code>
       <button type="button" onClick={() => void copyInvite()}>复制邀请码</button>
       {copied && <p role="status">已复制邀请码</p>}
@@ -45,7 +45,7 @@ export function PairingScreen({ userId, displayName, onCreate, onRedeem, onConti
   const [mode, setMode] = useState<'choice' | 'create' | 'join'>('choice');
   const [identity, setIdentity] = useState<PartnerId | null>(null);
   const [code, setCode] = useState('');
-  const [created, setCreated] = useState<PairingResult | null>(null);
+  const [created, setCreated] = useState<InviteResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { signingOut, signOutError, runSignOut } = useSignOutAction(onSignOut);
@@ -116,9 +116,9 @@ export function PairingScreen({ userId, displayName, onCreate, onRedeem, onConti
 
         {created ? (
           <>
-            <InviteResult result={created} />
+            <InviteResultView result={created} />
             {error && <p role="alert">{error}</p>}
-            <button type="button" disabled={loading} onClick={() => void continueIntoSpace()}>{loading ? '正在进入...' : '进入我们的空间'}</button>
+            <button type="button" disabled={loading} onClick={() => void continueIntoSpace()}>{loading ? '正在刷新...' : '刷新配对状态'}</button>
           </>
         ) : mode === 'choice' ? (
           <div className="pairing-options">

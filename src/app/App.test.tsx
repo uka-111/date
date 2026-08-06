@@ -52,11 +52,11 @@ it('preserves a newly-created invite across duplicate auth events until continue
   act(() => gateway.emit({ ...session }));
 
   expect(screen.getByText('CODE12345678')).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: '进入我们的空间' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '刷新配对状态' })).toBeInTheDocument();
   expect(screen.queryByText('等待对方加入')).not.toBeInTheDocument();
   expect(gateway.loadAccountContextCalls).toEqual(['u1']);
 
-  await user.click(screen.getByRole('button', { name: '进入我们的空间' }));
+  await user.click(screen.getByRole('button', { name: '刷新配对状态' }));
   expect(await screen.findByText('等待对方加入')).toBeInTheDocument();
   expect(gateway.loadAccountContextCalls).toEqual(['u1', 'u1']);
 });

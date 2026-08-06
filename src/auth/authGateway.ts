@@ -50,7 +50,7 @@ export interface AuthGateway {
   signUp(input: SignUpInput): Promise<SignUpResult>;
   signOut(): Promise<void>;
   loadAccountContext(userId: string): Promise<AccountContext>;
-  createCouple(identity: PartnerId): Promise<PairingResult>;
+  createPairingInvite(identity: PartnerId): Promise<InviteResult>;
   redeemInvite(code: string): Promise<PairingResult>;
   regenerateInvite(): Promise<InviteResult>;
   leaveCurrentCouple(): Promise<void>;
