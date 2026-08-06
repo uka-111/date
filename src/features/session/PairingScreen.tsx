@@ -101,6 +101,12 @@ export function PairingScreen({ userId, displayName, onCreate, onRedeem, onConti
     }
   }
 
+  function backToChoice() {
+    setMode('choice');
+    setIdentity(null);
+    setError('');
+  }
+
   return (
     <main className="entry-page session-page">
       <section className="entry-card session-card card">
@@ -121,6 +127,7 @@ export function PairingScreen({ userId, displayName, onCreate, onRedeem, onConti
           </div>
         ) : mode === 'create' ? (
           <section className="identity-choice">
+            <button className="pairing-back-button" type="button" aria-label="返回" onClick={backToChoice}>‹</button>
             <h2>创建时，请确认你的身份</h2>
             <div className="identity-options" role="group" aria-label="选择身份">
               <button className="identity-option" type="button" aria-pressed={identity === 'him'} onClick={() => setIdentity('him')}>我是他</button>
@@ -131,6 +138,7 @@ export function PairingScreen({ userId, displayName, onCreate, onRedeem, onConti
           </section>
         ) : (
           <form onSubmit={joinSpace}>
+            <button className="pairing-back-button" type="button" aria-label="返回" onClick={backToChoice}>‹</button>
             <label>
               邀请码
               <input type="text" value={code} onChange={(event) => setCode(event.target.value)} autoComplete="off" required />

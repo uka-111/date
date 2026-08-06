@@ -19,6 +19,23 @@ it('offers create and join without identity controls until create is selected', 
   expect(identityButtons[1]).toHaveClass('identity-option');
 });
 
+it('returns from the join form to the pairing choices with an arrow-only control', async () => {
+  const user = userEvent.setup();
+  render(<PairingScreen userId="user-a" displayName="小雨" onCreate={vi.fn()} onRedeem={vi.fn()} onContinue={vi.fn()} onSignOut={vi.fn()} />);
+
+  await user.click(screen.getByRole('button', { name: '加入对方的空间' }));
+
+  const backButton = screen.getByRole('button', { name: '返回' });
+  expect(backButton).toHaveTextContent('‹');
+  expect(screen.getByLabelText('邀请码')).toBeInTheDocument();
+
+  await user.click(backButton);
+
+  expect(screen.getByRole('button', { name: '创建我们的空间' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '加入对方的空间' })).toBeInTheDocument();
+  expect(screen.queryByLabelText('邀请码')).not.toBeInTheDocument();
+});
+
 it('shows a newly-created invite in memory and waits for explicit continue', async () => {
   const onContinue = vi.fn();
   const user = userEvent.setup();

@@ -411,6 +411,26 @@
   padding: 12px 14px;
 }
 
+.pairing-back-button {
+  display: flex;
+  width: fit-content;
+  min-height: 32px;
+  align-items: center;
+  margin: -8px 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--coral-dark);
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.pairing-back-button:hover,
+.pairing-back-button:focus-visible {
+  background: var(--blush-soft);
+}
+
 .calendar-card,
 .form-page,
 .details-page {
