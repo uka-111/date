@@ -47,7 +47,7 @@ test('both partners can complete a date invitation', async ({ page }) => {
   await himIdentityButton.click();
 
   await expect(page.getByRole('grid', { name: '共享月历' })).toBeVisible();
-  await page.getByRole('link', { name: '发起约会' }).click();
+  await page.getByRole('link', { name: '发起邀请' }).click();
   await expectNoHorizontalOverflow(page);
   await page.getByLabel('日期').fill('2026-07-25');
   await page.getByLabel('下午').check();
@@ -169,7 +169,7 @@ test('mobile multi-activity booking pages do not overflow horizontally', async (
   await page.getByLabel('专属口令').fill('2021121');
   await page.getByRole('button', { name: '进入我们的日历' }).click();
   await page.getByRole('button', { name: '我是他' }).click();
-  await page.getByRole('link', { name: '发起约会' }).click();
+  await page.getByRole('link', { name: '发起邀请' }).click();
 
   await page.getByLabel('日期').fill('2026-07-25');
   await page.getByLabel('晚上').check();

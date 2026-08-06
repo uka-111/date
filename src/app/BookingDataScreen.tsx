@@ -53,7 +53,7 @@ export function BookingDataScreen({ repository, coupleId, userId, photoRepositor
       {syncError && <p role="alert">{syncError}</p>}
       <Routes>
         <Route path="/" element={<><h1 className="visually-hidden">共享月历</h1><CalendarWorkspace repository={legacyRepository} partnerId={partnerId} photoRepository={photoRepository} /></>} />
-        <Route path="/invite" element={<section className="form-page"><h1>发起新的约会</h1><InvitationForm partnerId={partnerId} repository={legacyRepository} onSaved={() => navigate('/invitations')} /></section>} />
+        <Route path="/invite" element={<section className="form-page"><h1>发起新的邀请</h1><InvitationForm partnerId={partnerId} repository={legacyRepository} onSaved={() => navigate('/invitations')} /></section>} />
         <Route path="/invitations" element={<section><h1>我的安排</h1><InvitationList partnerId={partnerId} invitations={state.snapshot.invitations} onSelect={(invitation) => navigate(`/invitations/${invitation.id}`)} /></section>} />
         <Route path="/invitations/:id" element={<InvitationRoute partnerId={partnerId} repository={legacyRepository} onChanged={() => void reload()} />} />
         <Route path="*" element={<section><h1>页面不存在</h1><Link to="/">返回共享日历</Link></section>} />
