@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { PhotoRepository, PhotoRecord } from '../../storage/photoRepository';
 import { MAX_LOCAL_PHOTOS_PER_DAY } from '../../storage/photoRepository';
 
@@ -21,8 +21,23 @@ export function PhotoGallery({ date, repository, ownerId, readOnly = false, onCh
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
   const [active, setActive] = useState<PhotoRecord | null>(null);
-  const load = () => repository.list(date).then((items) => setPhotos(ownerId ? items.filter((item) => !item.ownerId || item.ownerId === ownerId) : items)).catch(() => setError('照片暂时无法读取'));
-  useEffect(() => { void load(); }, [date, ownerId]);
+  const loadVersion = useRef(0);
+  async function load() {
+    const version = ++loadVersion.current;
+    try {
+      const items = await repository.list(date);
+      if (version !== loadVersion.current) return;
+      setPhotos(ownerId ? items.filter((item) => !item.ownerId || item.ownerId === ownerId) : items);
+    } catch {
+      if (version === loadVersion.current) setError('照片暂时无法读取');
+    }
+  }
+  useEffect(() => {
+    setPhotos([]);
+    setError('');
+    void load();
+    return () => { loadVersion.current += 1; };
+  }, [date, ownerId, repository]);
   async function upload(event: React.ChangeEvent<HTMLInputElement>) {
     setError('');
     setUploading(true);

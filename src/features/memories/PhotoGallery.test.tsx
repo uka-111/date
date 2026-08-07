@@ -55,6 +55,43 @@ it('shows only the selected member photos for the same day', async () => {
   expect(await screen.findAllByRole('img')).toHaveLength(1);
 });
 
+it('clears the previous member photos while loading the next member photos', async () => {
+  const himPhoto: PhotoRecord = {
+    id: 'photo-him',
+    ownerId: 'him',
+    date: '2026-07-30',
+    blob: new Blob(['him'], { type: 'image/jpeg' }),
+    thumbnail: new Blob(['him'], { type: 'image/jpeg' }),
+    title: '',
+    createdAt: '2026-07-30T12:00:00.000Z',
+    order: 0,
+  };
+  const herPhoto: PhotoRecord = {
+    ...himPhoto,
+    id: 'photo-her',
+    ownerId: 'her',
+    blob: new Blob(['her'], { type: 'image/jpeg' }),
+    thumbnail: new Blob(['her'], { type: 'image/jpeg' }),
+  };
+  let resolveHim!: (photos: PhotoRecord[]) => void;
+  let resolveHer!: (photos: PhotoRecord[]) => void;
+  const repository = createRepository([]);
+  vi.mocked(repository.list)
+    .mockImplementationOnce(() => new Promise((resolve) => { resolveHim = resolve; }))
+    .mockImplementationOnce(() => new Promise((resolve) => { resolveHer = resolve; }));
+
+  const { rerender } = render(<PhotoGallery date="2026-07-30" repository={repository} ownerId="him" />);
+  resolveHim([himPhoto]);
+  expect(await screen.findAllByRole('img')).toHaveLength(1);
+
+  rerender(<PhotoGallery date="2026-07-30" repository={repository} ownerId="her" />);
+  await waitFor(() => expect(repository.list).toHaveBeenCalledTimes(2));
+  expect(screen.queryAllByRole('img')).toHaveLength(0);
+
+  resolveHer([herPhoto]);
+  expect(await screen.findAllByRole('img')).toHaveLength(1);
+});
+
 it('converts a mobile HEIC photo to JPEG before uploading', async () => {
   const repository = createRepository([]);
   render(<PhotoGallery date="2026-07-30" repository={repository} />);
