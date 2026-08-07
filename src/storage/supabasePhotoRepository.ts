@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../lib/database.types';
+import type { PartnerId } from '../domain/models';
 import type { PhotoRepository, PhotoRecord } from './photoRepository';
 
 function extension(type: string) {
@@ -41,19 +42,20 @@ export function createSupabasePhotoRepository(client: SupabaseClient<Database>, 
     identities = new Map(data.map((row) => [row.user_id, row.identity]));
     return identities;
   }
-  async function list(date: string) {
-    const [rowsResult, map] = await Promise.all([
-      client.from('daily_photos').select('*').eq('couple_id', coupleId).eq('date', date).order('created_at'),
-      identityMap(),
-    ]);
+  async function list(date: string, ownerId?: PartnerId) {
+    const map = await identityMap();
+    const selectedUserId = ownerId
+      ? [...map.entries()].find(([, identity]) => identity === ownerId)?.[0]
+      : undefined;
+    let photosQuery = client.from('daily_photos').select('*').eq('couple_id', coupleId).eq('date', date);
+    if (selectedUserId) photosQuery = photosQuery.eq('uploaded_by', selectedUserId);
+    const rowsResult = await photosQuery.order('created_at');
     if (rowsResult.error || !rowsResult.data) throw new Error('照片暂时无法读取');
     return Promise.all(rowsResult.data.map(async (row, order): Promise<PhotoRecord> => {
       const { data, error } = await client.storage.from('date-photos').createSignedUrl(row.storage_path, 3600);
       if (error || !data?.signedUrl) throw new Error('照片暂时无法读取');
-      const response = await fetch(data.signedUrl);
-      if (!response.ok) throw new Error('照片暂时无法读取');
-      const blob = await response.blob();
-      return { id: row.id, ownerId: map.get(row.uploaded_by), date: row.date, blob, thumbnail: blob, title: '', createdAt: row.created_at, order };
+      const placeholder = new Blob([], { type: row.mime_type });
+      return { id: row.id, ownerId: map.get(row.uploaded_by), date: row.date, blob: placeholder, thumbnail: placeholder, url: data.signedUrl, thumbnailUrl: data.signedUrl, title: '', createdAt: row.created_at, order };
     }));
   }
   return {

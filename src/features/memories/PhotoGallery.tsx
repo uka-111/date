@@ -25,7 +25,7 @@ export function PhotoGallery({ date, repository, ownerId, readOnly = false, onCh
   async function load() {
     const version = ++loadVersion.current;
     try {
-      const items = await repository.list(date);
+      const items = await repository.list(date, ownerId);
       if (version !== loadVersion.current) return;
       setPhotos(ownerId ? items.filter((item) => !item.ownerId || item.ownerId === ownerId) : items);
     } catch {
@@ -61,7 +61,7 @@ export function PhotoGallery({ date, repository, ownerId, readOnly = false, onCh
   return <section className="photo-gallery" aria-label="当天照片">
     <div className="memory-header"><h4>当天照片</h4><span>{photos.length}/{MAX_LOCAL_PHOTOS_PER_DAY}</span></div>
     <div className="photo-grid">{photos.map((photo) => <figure key={photo.id}>
-      <button className="photo-open" type="button" onClick={() => setActive(photo)}><img src={URL.createObjectURL(photo.thumbnail)} alt={photo.title || '当天照片'} /></button>
+      <button className="photo-open" type="button" onClick={() => setActive(photo)}><img src={photo.thumbnailUrl ?? URL.createObjectURL(photo.thumbnail)} alt={photo.title || '当天照片'} /></button>
       {!readOnly && <button className="photo-delete" type="button" aria-label="删除当天照片" onClick={() => remove(photo)}>×</button>}
     </figure>)}</div>
     {!readOnly && <label className="upload-button" title="选择当天的照片">
@@ -71,6 +71,6 @@ export function PhotoGallery({ date, repository, ownerId, readOnly = false, onCh
     </label>}
     {uploading && <p role="status">正在添加照片...</p>}
     {error && <p role="alert">{error}</p>}
-    {active && <div className="photo-viewer" role="dialog" aria-modal="true" aria-label="照片查看器"><button type="button" aria-label="关闭照片" onClick={() => setActive(null)}>关闭</button><img src={URL.createObjectURL(active.blob)} alt={active.title || '当天照片'} /><p>{active.title}</p></div>}
+    {active && <div className="photo-viewer" role="dialog" aria-modal="true" aria-label="照片查看器"><button type="button" aria-label="关闭照片" onClick={() => setActive(null)}>关闭</button><img src={active.url ?? URL.createObjectURL(active.blob)} alt={active.title || '当天照片'} /><p>{active.title}</p></div>}
   </section>;
 }
