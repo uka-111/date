@@ -502,6 +502,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_pairing_invite: {
+        Args: { p_identity: Database["public"]["Enums"]["partner_identity"] }
+        Returns: {
+          expires_at: string
+          invite_code: string
+        }[]
+      }
       create_couple_with_invite: {
         Args: { p_identity: Database["public"]["Enums"]["partner_identity"] }
         Returns: {
@@ -545,6 +552,13 @@ export type Database = {
       mark_notification_read: {
         Args: { p_notification_id: string }
         Returns: undefined
+      }
+      redeem_pairing_invite: {
+        Args: { p_invite_code: string }
+        Returns: {
+          couple_id: string
+          identity: Database["public"]["Enums"]["partner_identity"]
+        }[]
       }
       redeem_couple_invite: {
         Args: { p_invite_code: string }

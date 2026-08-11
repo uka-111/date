@@ -146,19 +146,14 @@ export function createSupabaseAuthGateway(
       };
     },
 
-    async createCouple(identity: PartnerId): Promise<PairingResult> {
-      const response = await client.rpc('create_couple_with_invite', { p_identity: identity });
+    async createPairingInvite(identity: PartnerId): Promise<InviteResult> {
+      const response = await client.rpc('create_pairing_invite', { p_identity: identity });
       const row = requireData(response.data?.[0] ?? null, response.error);
-      return {
-        coupleId: row.couple_id,
-        partnerId: identity,
-        inviteCode: row.invite_code,
-        expiresAt: row.expires_at,
-      };
+      return { inviteCode: row.invite_code, expiresAt: row.expires_at };
     },
 
     async redeemInvite(code: string): Promise<PairingResult> {
-      const response = await client.rpc('redeem_couple_invite', { p_invite_code: code.trim().toUpperCase() });
+      const response = await client.rpc('redeem_pairing_invite', { p_invite_code: code.trim().toUpperCase() });
       const row = requireData(response.data?.[0] ?? null, response.error);
       return { coupleId: row.couple_id, partnerId: assertPartnerId(row.identity) };
     },

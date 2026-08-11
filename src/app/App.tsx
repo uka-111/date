@@ -30,7 +30,7 @@ function AppContent({ bookingRepositoryFactory }: { bookingRepositoryFactory?: (
           key={session.state.userId}
           userId={session.state.userId}
           displayName={session.state.displayName}
-          onCreate={session.createCouple}
+          onCreate={session.createPairingInvite}
           onRedeem={session.redeemInvite}
           onContinue={session.reload}
           onSignOut={session.signOut}

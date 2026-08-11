@@ -84,7 +84,7 @@ it('maps RPC snake_case results and stable invite errors', async () => {
     .mockResolvedValueOnce({ data: null, error: { message: 'invite unavailable: hidden SQL detail' } });
   const gateway = createSupabaseAuthGateway(client as never, new BrowserAuthStorage());
 
-  await expect(gateway.createCouple('him')).resolves.toEqual({ coupleId: 'c1', partnerId: 'him', inviteCode: 'CODE12345678', expiresAt: 'later' });
+  await expect(gateway.createPairingInvite('him')).resolves.toEqual({ inviteCode: 'CODE12345678', expiresAt: 'later' });
   await expect(gateway.redeemInvite('BAD')).rejects.toThrow('邀请码不可用或已失效');
 });
 

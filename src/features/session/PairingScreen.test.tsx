@@ -19,6 +19,23 @@ it('offers create and join without identity controls until create is selected', 
   expect(identityButtons[1]).toHaveClass('identity-option');
 });
 
+it('returns from the join form to the pairing choices with an arrow-only control', async () => {
+  const user = userEvent.setup();
+  render(<PairingScreen userId="user-a" displayName="小雨" onCreate={vi.fn()} onRedeem={vi.fn()} onContinue={vi.fn()} onSignOut={vi.fn()} />);
+
+  await user.click(screen.getByRole('button', { name: '加入对方的空间' }));
+
+  const backButton = screen.getByRole('button', { name: '返回' });
+  expect(backButton).toHaveTextContent('‹');
+  expect(screen.getByLabelText('邀请码')).toBeInTheDocument();
+
+  await user.click(backButton);
+
+  expect(screen.getByRole('button', { name: '创建我们的空间' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '加入对方的空间' })).toBeInTheDocument();
+  expect(screen.queryByLabelText('邀请码')).not.toBeInTheDocument();
+});
+
 it('shows a newly-created invite in memory and waits for explicit continue', async () => {
   const onContinue = vi.fn();
   const user = userEvent.setup();
@@ -27,7 +44,7 @@ it('shows a newly-created invite in memory and waits for explicit continue', asy
       userId="user-a"
       displayName="小雨"
       onCreate={vi.fn().mockResolvedValue({
-        coupleId: 'couple-1', partnerId: 'her', inviteCode: 'ABC123XYZ789', expiresAt: '2026-07-29T10:00:00.000Z',
+        inviteCode: 'ABC123XYZ789', expiresAt: '2026-07-29T10:00:00.000Z',
       })}
       onRedeem={vi.fn()}
       onContinue={onContinue}
@@ -43,8 +60,34 @@ it('shows a newly-created invite in memory and waits for explicit continue', asy
   expect(screen.getByText(/7 天有效，使用后失效/)).toBeInTheDocument();
   expect(screen.getByText(/2026/)).toBeInTheDocument();
   expect(onContinue).not.toHaveBeenCalled();
-  await user.click(screen.getByRole('button', { name: '进入我们的空间' }));
+  await user.click(screen.getByRole('button', { name: '刷新配对状态' }));
   expect(onContinue).toHaveBeenCalledOnce();
+});
+
+it('returns from the created invite view with the same arrow-only control', async () => {
+  const user = userEvent.setup();
+  render(
+    <PairingScreen
+      userId="user-a"
+      displayName="小雨"
+      onCreate={vi.fn().mockResolvedValue({ inviteCode: 'ABC123XYZ789', expiresAt: '2026-07-29T10:00:00.000Z' })}
+      onRedeem={vi.fn()}
+      onContinue={vi.fn()}
+      onSignOut={vi.fn()}
+    />,
+  );
+
+  await user.click(screen.getByRole('button', { name: '创建我们的空间' }));
+  await user.click(screen.getByRole('button', { name: '我是她' }));
+  await user.click(screen.getByRole('button', { name: '生成邀请码' }));
+
+  const backButton = await screen.findByRole('button', { name: '返回' });
+  expect(backButton).toHaveTextContent('‹');
+  await user.click(backButton);
+
+  expect(screen.getByRole('button', { name: '创建我们的空间' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '加入对方的空间' })).toBeInTheDocument();
+  expect(screen.queryByText('ABC123XYZ789')).not.toBeInTheDocument();
 });
 
 it('keeps a failed join code and normalizes successful submissions', async () => {
@@ -83,7 +126,7 @@ it('clears a created invite when the unpaired user changes', async () => {
   const user = userEvent.setup();
   const common = {
     displayName: '小雨',
-    onCreate: vi.fn().mockResolvedValue({ coupleId: 'couple-1', partnerId: 'her', inviteCode: 'ABC123XYZ789', expiresAt: '2026-07-29T10:00:00.000Z' }),
+    onCreate: vi.fn().mockResolvedValue({ inviteCode: 'ABC123XYZ789', expiresAt: '2026-07-29T10:00:00.000Z' }),
     onRedeem: vi.fn(),
     onContinue: vi.fn(),
     onSignOut: vi.fn(),

@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, auth, extensions;
 
-select plan(48);
+select plan(51);
 
 create function pg_temp.normalized_function_definition(p_function regprocedure)
 returns text
@@ -750,6 +750,18 @@ select ok(
 
 select ok(
   pg_temp.normalized_function_definition(
+    'public.regenerate_couple_invite()'::regprocedure
+  ) ~
+    'where[[:space:]]+cm\.user_id[[:space:]]*=[[:space:]]*v_user_id[[:space:]]+and[[:space:]]+cm\.left_at[[:space:]]+is[[:space:]]+null'
+    and pg_temp.normalized_function_definition(
+      'public.regenerate_couple_invite()'::regprocedure
+    ) ~
+    'where[[:space:]]+cm\.couple_id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+and[[:space:]]+cm\.left_at[[:space:]]+is[[:space:]]+null',
+  'regenerate only uses the current membership and active members after unpairing recovery'
+);
+
+select ok(
+  pg_temp.normalized_function_definition(
     'public.redeem_couple_invite(text)'::regprocedure
   ) ~
     'perform[[:space:]]+1[[:space:]]+from[[:space:]]+public\.couples[[:space:]]+as[[:space:]]+c[[:space:]]+where[[:space:]]+c\.id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+for[[:space:]]+update',
@@ -762,6 +774,27 @@ select ok(
   ) ~
     'select[[:space:]]+ci\.expires_at[[:space:]]*,[[:space:]]*ci\.used_at[[:space:]]*,[[:space:]]*ci\.revoked_at[[:space:]]+into[[:space:]]+v_expires_at[[:space:]]*,[[:space:]]*v_used_at[[:space:]]*,[[:space:]]*v_revoked_at[[:space:]]+from[[:space:]]+public\.couple_invites[[:space:]]+as[[:space:]]+ci[[:space:]]+where[[:space:]]+ci\.id[[:space:]]*=[[:space:]]*v_invite_id[[:space:]]+and[[:space:]]+ci\.couple_id[[:space:]]*=[[:space:]]*v_couple_id[[:space:]]+and[[:space:]]+ci\.code_hash[[:space:]]*=[[:space:]]*v_code_hash[[:space:]]+for[[:space:]]+update',
   'redeem locks the selected public.couple_invites row by invite id before consuming it'
+);
+
+select ok(
+  to_regclass('public.pairing_invites') is not null
+    and to_regprocedure('public.create_pairing_invite(public.partner_identity)') is not null
+    and to_regprocedure('public.redeem_pairing_invite(text)') is not null,
+  'pairing uses a pending invite before choosing a new or historical couple'
+);
+
+select ok(
+  pg_temp.normalized_function_definition(
+    'public.create_pairing_invite(public.partner_identity)'::regprocedure
+  ) ~ 'coalesce\([[:space:]]*v_existing_identity[[:space:]]*,[[:space:]]*p_identity[[:space:]]*\)',
+  'a new account keeps its selected identity when it has no active membership'
+);
+
+select ok(
+  pg_temp.normalized_function_definition(
+    'public.redeem_pairing_invite(text)'::regprocedure
+  ) ~ 'from[[:space:]]+public\.couple_members[[:space:]]+as[[:space:]]+historical_member[[:space:]]+where[[:space:]]+historical_member\.couple_id[[:space:]]*=[[:space:]]*first_member\.couple_id',
+  'redeem qualifies the historical couple id to avoid the output-column name collision'
 );
 
 select * from finish();

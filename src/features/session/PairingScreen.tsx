@@ -1,18 +1,18 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import type { PairingResult } from '../../auth/authGateway';
+import type { InviteResult, PairingResult } from '../../auth/authGateway';
 import type { PartnerId } from '../../domain/models';
 import { useSignOutAction } from './useSignOutAction';
 
 interface PairingScreenProps {
   userId: string;
   displayName: string;
-  onCreate(identity: PartnerId): Promise<PairingResult>;
+  onCreate(identity: PartnerId): Promise<InviteResult>;
   onRedeem(code: string): Promise<PairingResult>;
   onContinue(): Promise<void> | void;
   onSignOut(): Promise<void> | void;
 }
 
-function InviteResult({ result }: { result: PairingResult }) {
+function InviteResultView({ result }: { result: InviteResult }) {
   const expiry = result.expiresAt ? new Date(result.expiresAt).toLocaleString('zh-CN') : '';
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState('');
@@ -30,8 +30,8 @@ function InviteResult({ result }: { result: PairingResult }) {
 
   return (
     <section className="invite-result" aria-labelledby="invite-result-heading">
-      <h2 id="invite-result-heading">空间已经准备好了</h2>
-      <p>把这枚邀请码交给对方：</p>
+      <h2 id="invite-result-heading">配对请求已准备好</h2>
+      <p>把这枚邀请码交给对方，双方确认后会建立空间：</p>
       <code className="invite-code" aria-label="邀请码文本">{result.inviteCode}</code>
       <button type="button" onClick={() => void copyInvite()}>复制邀请码</button>
       {copied && <p role="status">已复制邀请码</p>}
@@ -45,7 +45,7 @@ export function PairingScreen({ userId, displayName, onCreate, onRedeem, onConti
   const [mode, setMode] = useState<'choice' | 'create' | 'join'>('choice');
   const [identity, setIdentity] = useState<PartnerId | null>(null);
   const [code, setCode] = useState('');
-  const [created, setCreated] = useState<PairingResult | null>(null);
+  const [created, setCreated] = useState<InviteResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { signingOut, signOutError, runSignOut } = useSignOutAction(onSignOut);
@@ -101,6 +101,14 @@ export function PairingScreen({ userId, displayName, onCreate, onRedeem, onConti
     }
   }
 
+  function backToChoice() {
+    setMode('choice');
+    setIdentity(null);
+    setCode('');
+    setCreated(null);
+    setError('');
+  }
+
   return (
     <main className="entry-page session-page">
       <section className="entry-card session-card card">
@@ -110,9 +118,10 @@ export function PairingScreen({ userId, displayName, onCreate, onRedeem, onConti
 
         {created ? (
           <>
-            <InviteResult result={created} />
+            <button className="pairing-back-button" type="button" aria-label="返回" onClick={backToChoice}>‹</button>
+            <InviteResultView result={created} />
             {error && <p role="alert">{error}</p>}
-            <button type="button" disabled={loading} onClick={() => void continueIntoSpace()}>{loading ? '正在进入...' : '进入我们的空间'}</button>
+            <button type="button" disabled={loading} onClick={() => void continueIntoSpace()}>{loading ? '正在刷新...' : '刷新配对状态'}</button>
           </>
         ) : mode === 'choice' ? (
           <div className="pairing-options">
@@ -121,16 +130,18 @@ export function PairingScreen({ userId, displayName, onCreate, onRedeem, onConti
           </div>
         ) : mode === 'create' ? (
           <section className="identity-choice">
+            <button className="pairing-back-button" type="button" aria-label="返回" onClick={backToChoice}>‹</button>
             <h2>创建时，请确认你的身份</h2>
             <div className="identity-options" role="group" aria-label="选择身份">
               <button className="identity-option" type="button" aria-pressed={identity === 'him'} onClick={() => setIdentity('him')}>我是他</button>
               <button className="identity-option" type="button" aria-pressed={identity === 'her'} onClick={() => setIdentity('her')}>我是她</button>
             </div>
             {error && <p role="alert">{error}</p>}
-            <button type="button" disabled={loading} onClick={() => void createSpace()}>{loading ? '正在生成...' : '生成邀请码'}</button>
+            <button className="identity-submit" type="button" disabled={loading} onClick={() => void createSpace()}>{loading ? '正在生成...' : '生成邀请码'}</button>
           </section>
         ) : (
           <form onSubmit={joinSpace}>
+            <button className="pairing-back-button" type="button" aria-label="返回" onClick={backToChoice}>‹</button>
             <label>
               邀请码
               <input type="text" value={code} onChange={(event) => setCode(event.target.value)} autoComplete="off" required />

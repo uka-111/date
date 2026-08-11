@@ -1,9 +1,13 @@
+import type { PartnerId } from '../domain/models';
+
 export interface PhotoRecord {
   id: string;
   ownerId?: 'him' | 'her';
   date: string;
   blob: Blob;
   thumbnail: Blob;
+  url?: string;
+  thumbnailUrl?: string;
   title: string;
   createdAt: string;
   order: number;
@@ -17,7 +21,7 @@ export interface PhotoInput {
 }
 
 export interface PhotoRepository {
-  list(date: string): Promise<PhotoRecord[]>;
+  list(date: string, ownerId?: PartnerId): Promise<PhotoRecord[]>;
   add(input: PhotoInput): Promise<PhotoRecord>;
   updateTitle(id: string, title: string): Promise<void>;
   delete(id: string): Promise<void>;
@@ -50,10 +54,11 @@ export function createPhotoRepository(
       };
     });
 
-  async function list(date: string) {
-    if (!useIndexedDb) return [...memory.values()].filter((item) => item.date === date).sort((a, b) => a.order - b.order);
+  async function list(date: string, ownerId?: PartnerId) {
+    const matches = (item: PhotoRecord) => item.date === date && (!ownerId || !item.ownerId || item.ownerId === ownerId);
+    if (!useIndexedDb) return [...memory.values()].filter(matches).sort((a, b) => a.order - b.order);
     const all = await request<PhotoRecord[]>('photos', 'readonly', (store) => store.index('date').getAll(date));
-    return all.sort((a, b) => a.order - b.order);
+    return all.filter(matches).sort((a, b) => a.order - b.order);
   }
 
   async function add(input: PhotoInput) {

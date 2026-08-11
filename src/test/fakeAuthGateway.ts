@@ -68,8 +68,8 @@ export class FakeAuthGateway implements AuthGateway {
     return this.loadContext ? this.loadContext(userId) : this.accountContext;
   }
 
-  async createCouple(identity: PartnerId): Promise<PairingResult> {
-    return { coupleId: 'couple-1', partnerId: identity, inviteCode: 'CODE12345678', expiresAt: new Date().toISOString() };
+  async createPairingInvite(_identity: PartnerId): Promise<InviteResult> {
+    return { inviteCode: 'CODE12345678', expiresAt: new Date().toISOString() };
   }
 
   async redeemInvite(_code: string): Promise<PairingResult> {
