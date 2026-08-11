@@ -89,3 +89,31 @@ it('saves the current partner availability from the day panel', async () => {
   });
   expect(screen.getByText('他：晚上')).toBeInTheDocument();
 });
+
+it('clears my availability when every period is deselected and saved', async () => {
+  const repository = createLocalRepository(localStorage);
+  repository.saveAvailability({
+    id: 'him:2026-07-25',
+    ownerId: 'him',
+    date: '2026-07-25',
+    periods: ['evening'],
+    note: '',
+    updatedAt: '2026-07-24T10:00:00.000Z',
+  });
+
+  const user = userEvent.setup();
+  render(
+    <MonthCalendar
+      initialMonth="2026-07"
+      repository={repository}
+      partnerId="him"
+    />,
+  );
+
+  await user.click(screen.getByRole('button', { name: '7月25日' }));
+  await user.click(screen.getByLabelText('晚上'));
+  await user.click(screen.getByRole('button', { name: '保存我的空闲时间' }));
+
+  expect(repository.read().availability).toEqual([]);
+  expect(screen.getByText('这一天还没有人标记空闲时间。')).toBeInTheDocument();
+});

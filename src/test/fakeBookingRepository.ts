@@ -37,6 +37,10 @@ export function createFakeBookingRepository(
       const availability = snapshot.availability.filter(
         (value) => !(value.ownerId === currentUserId && value.date === input.date),
       );
+      if (input.periods.length === 0) {
+        commit({ ...snapshot, availability });
+        return;
+      }
       commit({
         ...snapshot,
         availability: [...availability, {

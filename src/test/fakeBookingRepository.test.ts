@@ -32,6 +32,23 @@ describe('fake booking repository', () => {
     unsubscribe();
   });
 
+  it('removes my existing availability when saving no periods', async () => {
+    const repository = createFakeBookingRepository({
+      availability: [{
+        id: 'him-2026-07-25',
+        ownerId: 'him',
+        date: '2026-07-25',
+        periods: ['evening'],
+        note: '',
+        updatedAt: '2026-07-24T10:00:00.000Z',
+      }],
+    });
+
+    await repository.saveAvailability({ date: '2026-07-25', periods: [], note: '' });
+
+    await expect(repository.load()).resolves.toMatchObject({ availability: [] });
+  });
+
   it('does not mutate state when the next operation fails', async () => {
     const repository = createFakeBookingRepository();
     repository.failNext('网络暂时不可用');

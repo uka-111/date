@@ -93,6 +93,15 @@ it('saves one daily note per date and persists the calendar scale', () => {
   expect(repository.getDailyNote('2026-07-25')).toBeUndefined();
 });
 
+it('removes my availability when saving no periods', () => {
+  const repository = createLocalRepository(localStorage);
+  repository.saveAvailability({ id: 'him:2026-07-25', ownerId: 'him', date: '2026-07-25', periods: ['evening'], note: '', updatedAt: '' });
+
+  repository.saveAvailability({ id: 'him:2026-07-25', ownerId: 'him', date: '2026-07-25', periods: [], note: '', updatedAt: '' });
+
+  expect(repository.read().availability).toEqual([]);
+});
+
 it('keeps two invitations in the same date period', () => {
   const repository = createLocalRepository(localStorage);
 

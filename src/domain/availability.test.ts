@@ -17,13 +17,11 @@ it('normalizes duplicate periods and preserves a partner-specific record', () =>
   expect(value.note).toBe('下班后');
 });
 
-it('rejects an availability record without a period', () => {
-  expect(() =>
-    createAvailability({
-      ownerId: 'him',
-      date: '2026-07-25',
-      periods: [],
-      note: '',
-    }),
-  ).toThrow('请至少选择一个空闲时段');
+it('allows an empty availability selection so saving can clear the record', () => {
+  expect(createAvailability({
+    ownerId: 'him',
+    date: '2026-07-25',
+    periods: [],
+    note: '',
+  }).periods).toEqual([]);
 });

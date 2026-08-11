@@ -15,10 +15,6 @@ export function createAvailability(
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !isValid(parseISO(input.date))) {
     throw new Error('日期格式不正确');
   }
-  if (input.periods.length === 0) {
-    throw new Error('请至少选择一个空闲时段');
-  }
-
   return {
     id: `${input.ownerId}:${input.date}`,
     ownerId: input.ownerId,

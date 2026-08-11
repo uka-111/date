@@ -50,6 +50,13 @@ export function createLocalRepository(
 
   function saveAvailability(value: Availability) {
     const database = read();
+    if (value.periods.length === 0) {
+      write({
+        ...database,
+        availability: database.availability.filter((item) => item.id !== value.id),
+      });
+      return;
+    }
     write({
       ...database,
       availability: upsertById(database.availability, value),
