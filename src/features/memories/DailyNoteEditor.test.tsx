@@ -38,3 +38,11 @@ it('groups note actions into a compact action row', () => {
   expect(saveButton).toHaveClass('daily-note-save');
   expect(deleteButton).toHaveClass('daily-note-delete');
 });
+
+it('marks the editable note as a non-stretching grid so desktop photo height cannot expand its fields', () => {
+  const repository = createLocalRepository(localStorage);
+
+  render(<DailyNoteEditor date="2026-07-25" repository={repository} />);
+
+  expect(document.querySelector('.daily-note')).toHaveClass('daily-note-editor');
+});

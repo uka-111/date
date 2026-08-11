@@ -27,7 +27,7 @@ export function DailyNoteEditor({ date, repository, onSaved }: { date: string; r
     if (!window.confirm('确定删除这篇记录吗？')) return;
     repository.deleteDailyNote(date); setTitle(''); setBody(''); setDirty(false); setStatus('记录已删除'); onSaved?.();
   }
-  return <section className="daily-note" aria-label="每日文字回忆">
+  return <section className="daily-note daily-note-editor" aria-label="每日文字回忆">
     <h4>当天记录</h4>
     <label htmlFor={`note-title-${date}`}>记录标题</label>
     <input id={`note-title-${date}`} value={title} onChange={(event) => { setTitle(event.target.value); setDirty(true); }} />
