@@ -32,3 +32,11 @@ it('marks the memory columns for a narrower photo area on desktop', () => {
 
   expect(document.querySelector('.memory-content')).toHaveClass('memory-content-balanced');
 });
+
+it('marks the photo column as compact for the desktop balance treatment', () => {
+  const repository = createLocalRepository(localStorage);
+
+  render(<DayPanel date="2026-07-30" partnerId="him" availability={[]} repository={repository} onSaved={vi.fn()} />);
+
+  expect(document.querySelector('.memory-content')).toHaveClass('memory-content-compact-photos');
+});
