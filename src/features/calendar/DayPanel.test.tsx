@@ -24,3 +24,11 @@ it('switches to the partner memory as a read-only view', async () => {
   expect(screen.queryByRole('button', { name: '保存记录' })).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: '删除记录' })).not.toBeInTheDocument();
 });
+
+it('marks the memory columns for a narrower photo area on desktop', () => {
+  const repository = createLocalRepository(localStorage);
+
+  render(<DayPanel date="2026-07-30" partnerId="him" availability={[]} repository={repository} onSaved={vi.fn()} />);
+
+  expect(document.querySelector('.memory-content')).toHaveClass('memory-content-balanced');
+});

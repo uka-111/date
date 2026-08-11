@@ -75,7 +75,7 @@ export function DayPanel({
         >
           {isOwnMemory ? '我的' : '对方'}
         </button>
-        <div className="memory-content">
+        <div className="memory-content memory-content-balanced">
           {photoRepository && <PhotoGallery date={date} repository={photoRepository} ownerId={memoryOwner} readOnly={!isOwnMemory} onChanged={onSaved} />}
           {isOwnMemory
             ? <DailyNoteEditor date={date} repository={repository} onSaved={onSaved} />

@@ -949,7 +949,7 @@ fieldset label {
     align-items: start;
   }
   .year-density > div { grid-template-columns: repeat(12, minmax(0, 1fr)); }
-  .memory-content { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .memory-content-balanced { grid-template-columns: minmax(0, 11fr) minmax(0, 14fr); }
   .cloud-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
