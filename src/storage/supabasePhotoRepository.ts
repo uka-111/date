@@ -26,6 +26,8 @@ const imageTypeAliases: Record<string, string> = {
   'image/x-png': 'image/png',
 };
 
+export const MAX_CLOUD_PHOTO_BYTES = 30 * 1024 * 1024;
+
 export function normalizeImageType(type: string, fileName = '') {
   const normalizedType = imageTypeAliases[type.trim().toLowerCase()] ?? type.trim().toLowerCase();
   if (['image/gif', 'image/jpeg', 'image/png', 'image/webp'].includes(normalizedType)) return normalizedType;
@@ -63,7 +65,7 @@ export function createSupabasePhotoRepository(client: SupabaseClient<Database>, 
     async add(input) {
       const mimeType = normalizeImageType(input.blob.type, input.fileName);
       if (!['image/gif', 'image/jpeg', 'image/png', 'image/webp'].includes(mimeType)) throw new Error('暂只支持 JPG、PNG、WebP 或 GIF 图片');
-      if (input.blob.size > 10485760) throw new Error('图片文件超过 10 MB，请压缩后再上传');
+      if (input.blob.size > MAX_CLOUD_PHOTO_BYTES) throw new Error('图片文件超过 30 MB，请压缩后再上传');
       const path = `${coupleId}/${input.date}/${crypto.randomUUID()}.${extension(mimeType)}`;
       const uploaded = await client.storage.from('date-photos').upload(path, input.blob, { contentType: mimeType, upsert: false });
       if (uploaded.error) throw new Error('照片上传失败');

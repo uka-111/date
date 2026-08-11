@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { createSupabasePhotoRepository, normalizeImageType } from './supabasePhotoRepository';
+import { createSupabasePhotoRepository, MAX_CLOUD_PHOTO_BYTES, normalizeImageType } from './supabasePhotoRepository';
 
 it('normalizes mobile image MIME types before cloud upload validation', () => {
   expect(normalizeImageType('image/jpg')).toBe('image/jpeg');
@@ -8,6 +8,10 @@ it('normalizes mobile image MIME types before cloud upload validation', () => {
   expect(normalizeImageType('image/gif')).toBe('image/gif');
   expect(normalizeImageType('', 'mobile-photo.JPG')).toBe('image/jpeg');
   expect(normalizeImageType('', 'animation.gif')).toBe('image/gif');
+});
+
+it('allows cloud photo uploads up to 30 MiB', () => {
+  expect(MAX_CLOUD_PHOTO_BYTES).toBe(30 * 1024 * 1024);
 });
 
 it('filters cloud photos by the selected member before downloading image blobs', async () => {
