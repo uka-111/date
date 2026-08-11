@@ -607,8 +607,9 @@
 .photo-delete { position: absolute; top: 4px; right: 4px; display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--cocoa); box-shadow: 0 2px 8px rgba(73, 57, 54, 0.18); cursor: pointer; font-size: 1.2rem; line-height: 1; }
 .photo-delete:hover { border-color: var(--error); background: var(--error); color: white; }
 .photo-delete:focus-visible { outline: 3px solid color-mix(in srgb, var(--coral) 50%, transparent); outline-offset: 2px; }
-.photo-viewer { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(32, 26, 25, 0.86); color: white; }
-.photo-viewer img { max-width: min(92vw, 960px); max-height: 78vh; object-fit: contain; }
+.photo-viewer { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px; overflow: hidden; padding: 24px; background: rgba(32, 26, 25, 0.86); color: white; }
+.photo-viewer-stage { min-width: 0; min-height: 0; max-width: 92vw; max-height: 78vh; overflow: auto; display: grid; place-items: center; overscroll-behavior: contain; }
+.photo-viewer-stage img { max-width: min(92vw, 960px); max-height: 78vh; object-fit: contain; transform-origin: center; transition: transform 120ms ease-out; will-change: transform; }
 .photo-viewer > button { justify-self: end; border: 1px solid white; background: transparent; color: white; padding: 8px 12px; cursor: pointer; }
 .upload-button {
   display: inline-flex;

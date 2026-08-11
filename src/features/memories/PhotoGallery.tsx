@@ -17,10 +17,15 @@ async function preparePhotoUpload(file: File) {
 }
 
 export function PhotoGallery({ date, repository, ownerId, readOnly = false, onChanged }: { date: string; repository: PhotoRepository; ownerId?: 'him' | 'her'; readOnly?: boolean; onChanged?: () => void }) {
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 3;
+  const ZOOM_STEP = 0.2;
   const [photos, setPhotos] = useState<PhotoRecord[]>([]);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
   const [active, setActive] = useState<PhotoRecord | null>(null);
+  const [zoom, setZoom] = useState(MIN_ZOOM);
+  const viewerStageRef = useRef<HTMLDivElement>(null);
   const loadVersion = useRef(0);
   async function load() {
     const version = ++loadVersion.current;
@@ -58,10 +63,25 @@ export function PhotoGallery({ date, repository, ownerId, readOnly = false, onCh
     if (!window.confirm('确定删除这张照片吗？')) return;
     await repository.delete(photo.id); setActive(null); await load(); onChanged?.();
   }
+  function openPhoto(photo: PhotoRecord) {
+    setActive(photo);
+    setZoom(MIN_ZOOM);
+  }
+  useEffect(() => {
+    const stage = viewerStageRef.current;
+    if (!active || !stage) return;
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setZoom((current) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round((current + (event.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP)) * 10) / 10)));
+    };
+    stage.addEventListener('wheel', handleWheel, { passive: false });
+    return () => stage.removeEventListener('wheel', handleWheel);
+  }, [active]);
   return <section className="photo-gallery" aria-label="当天照片">
     <div className="memory-header"><h4>当天照片</h4><span>{photos.length}/{MAX_LOCAL_PHOTOS_PER_DAY}</span></div>
     <div className="photo-grid">{photos.map((photo) => <figure key={photo.id}>
-      <button className="photo-open" type="button" onClick={() => setActive(photo)}><img src={photo.thumbnailUrl ?? URL.createObjectURL(photo.thumbnail)} alt={photo.title || '当天照片'} /></button>
+      <button className="photo-open" type="button" onClick={() => openPhoto(photo)}><img src={photo.thumbnailUrl ?? URL.createObjectURL(photo.thumbnail)} alt={photo.title || '当天照片'} /></button>
       {!readOnly && <button className="photo-delete" type="button" aria-label="删除当天照片" onClick={() => remove(photo)}>×</button>}
     </figure>)}</div>
     {!readOnly && <label className="upload-button" title="选择当天的照片">
@@ -71,6 +91,6 @@ export function PhotoGallery({ date, repository, ownerId, readOnly = false, onCh
     </label>}
     {uploading && <p role="status">正在添加照片...</p>}
     {error && <p role="alert">{error}</p>}
-    {active && <div className="photo-viewer" role="dialog" aria-modal="true" aria-label="照片查看器"><button type="button" aria-label="关闭照片" onClick={() => setActive(null)}>关闭</button><img src={active.url ?? URL.createObjectURL(active.blob)} alt={active.title || '当天照片'} /><p>{active.title}</p></div>}
+    {active && <div className="photo-viewer" role="dialog" aria-modal="true" aria-label="照片查看器"><button type="button" aria-label="关闭照片" onClick={() => { setActive(null); setZoom(MIN_ZOOM); }}>关闭</button><div ref={viewerStageRef} className="photo-viewer-stage"><img style={{ transform: `scale(${zoom})` }} src={active.url ?? URL.createObjectURL(active.blob)} alt={active.title || '当天照片'} /></div><p>{active.title}</p></div>}
   </section>;
 }

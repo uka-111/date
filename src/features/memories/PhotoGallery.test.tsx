@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { createEvent, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import type { PhotoRecord, PhotoRepository } from '../../storage/photoRepository';
@@ -106,4 +106,31 @@ it('converts a mobile HEIC photo to JPEG before uploading', async () => {
     blob: expect.objectContaining({ type: 'image/jpeg' }),
     fileName: 'IMG_1234.jpg',
   }));
+});
+
+it('zooms the active photo with the mouse wheel and clamps the zoom range', async () => {
+  const photo: PhotoRecord = {
+    id: 'photo-zoom',
+    date: '2026-07-30',
+    blob: new Blob(['photo'], { type: 'image/jpeg' }),
+    thumbnail: new Blob(['thumb'], { type: 'image/jpeg' }),
+    title: '',
+    createdAt: '2026-07-30T12:00:00.000Z',
+    order: 0,
+  };
+  const user = userEvent.setup();
+  render(<PhotoGallery date="2026-07-30" repository={createRepository([photo])} />);
+
+  await user.click((await screen.findAllByRole('img'))[0]);
+  const activeImage = screen.getByRole('dialog').querySelector('img');
+  expect(activeImage).not.toBeNull();
+  const zoomEvent = createEvent.wheel(activeImage!, { deltaY: -100, cancelable: true });
+  fireEvent(activeImage!, zoomEvent);
+  expect(zoomEvent.defaultPrevented).toBe(true);
+  expect(activeImage).toHaveStyle({ transform: 'scale(1.2)' });
+
+  for (let index = 0; index < 20; index += 1) fireEvent.wheel(activeImage!, { deltaY: -100 });
+  expect(activeImage).toHaveStyle({ transform: 'scale(3)' });
+  for (let index = 0; index < 30; index += 1) fireEvent.wheel(activeImage!, { deltaY: 100 });
+  expect(activeImage).toHaveStyle({ transform: 'scale(1)' });
 });
