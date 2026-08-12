@@ -605,7 +605,7 @@
 .readonly-note-field { box-sizing: border-box; min-height: 46px; margin: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--cocoa); padding: 10px 12px; }
 .readonly-note-body { min-height: 100px; white-space: pre-wrap; }
 .memory-header { display: flex; align-items: center; justify-content: space-between; }
-.photo-scroll { max-height: 258px; overflow-y: auto; padding-right: 6px; overscroll-behavior: contain; }
+.photo-scroll { height: 258px; overflow-y: auto; padding-right: 6px; overscroll-behavior: contain; }
 .photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .photo-gallery-count-3 .photo-grid { gap: 6px; }
 .photo-gallery-scroll .photo-grid { gap: 6px; }
@@ -637,8 +637,10 @@
 .upload-button:hover { background: var(--coral-dark); }
 .upload-button > span { font-size: 1.25rem; line-height: 1; }
 .upload-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.photo-gallery .upload-button,
+.daily-note-actions { margin-top: auto; }
 .daily-note { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
-.daily-note-editor textarea { flex: 1 1 auto; }
+.daily-note-editor textarea { min-height: 150px; }
 .daily-note-actions { display: flex; align-items: center; justify-content: flex-start; gap: 8px; }
 .daily-note-actions button { width: fit-content; min-height: 34px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-weight: 700; padding: 7px 11px; }
 .daily-note-actions .daily-note-save { border-color: var(--coral); background: var(--coral); color: white; }
@@ -962,7 +964,7 @@ fieldset label {
   .memory-content-balanced { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .photo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .daily-note-editor textarea,
-  .daily-note-readonly .readonly-note-body { min-height: 204px; }
+  .daily-note-readonly .readonly-note-body { min-height: 150px; }
   .cloud-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
