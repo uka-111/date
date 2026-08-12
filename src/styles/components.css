@@ -599,6 +599,7 @@
 .memory-content-balanced > .daily-note { min-width: 0; }
 .photo-gallery, .daily-note { padding-top: 16px; border-top: 1px solid var(--border); }
 .photo-gallery { display: flex; flex-direction: column; align-items: stretch; }
+.photo-gallery .upload-button { align-self: flex-start; }
 .daily-note-readonly { display: grid; gap: 6px; }
 .note-field-label { color: var(--cocoa); font-weight: 700; }
 .readonly-note-field { box-sizing: border-box; min-height: 46px; margin: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--cocoa); padding: 10px 12px; }
@@ -607,7 +608,7 @@
 .photo-scroll { max-height: 258px; overflow-y: auto; padding-right: 6px; overscroll-behavior: contain; }
 .photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .photo-gallery-count-3 .photo-grid { gap: 6px; }
-.photo-gallery-many .photo-grid { gap: 6px; }
+.photo-gallery-scroll .photo-grid { gap: 6px; }
 .photo-grid figure { position: relative; margin: 0; }
 .photo-grid img { width: 100%; aspect-ratio: 1; border-radius: 6px; object-fit: cover; }
 .photo-open { width: 100%; border: 0; background: transparent; padding: 0; cursor: pointer; }
@@ -959,6 +960,7 @@ fieldset label {
   }
   .year-density > div { grid-template-columns: repeat(12, minmax(0, 1fr)); }
   .memory-content-balanced { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .photo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .daily-note-editor textarea,
   .daily-note-readonly .readonly-note-body { min-height: 204px; }
   .cloud-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
