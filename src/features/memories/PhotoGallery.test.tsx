@@ -55,6 +55,14 @@ it('shows only the selected member photos for the same day', async () => {
   expect(await screen.findAllByRole('img')).toHaveLength(1);
 });
 
+it('uses the same compact action sizing for adding photos as saving a note', () => {
+  const repository = createRepository([]);
+
+  render(<PhotoGallery date="2026-07-30" repository={repository} />);
+
+  expect(screen.getByTitle('选择当天的照片')).toHaveClass('photo-upload-action');
+});
+
 it('adds the shared scroll viewport once three thumbnails are present', async () => {
   const records = Array.from({ length: 3 }, (_, index) => ({
     id: `photo-${index}`,

@@ -87,7 +87,7 @@ export function PhotoGallery({ date, repository, ownerId, readOnly = false, onCh
       {!readOnly && <button className="photo-delete" type="button" aria-label="删除当天照片" onClick={() => remove(photo)}>×</button>}
     </figure>)}</div>
     </div>
-    {!readOnly && <label className="upload-button" title="选择当天的照片">
+    {!readOnly && <label className="upload-button photo-upload-action" title="选择当天的照片">
       <span aria-hidden="true">+</span>
       {uploading ? '正在添加...' : '添加照片'}
       <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.heic,.heif" multiple disabled={uploading} onChange={upload} />

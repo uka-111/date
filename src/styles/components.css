@@ -632,7 +632,7 @@
   color: white;
   cursor: pointer;
   font-weight: 700;
-  padding: 10px 14px;
+  padding: 7px 11px;
 }
 .upload-button:hover { background: var(--coral-dark); }
 .upload-button > span { font-size: 1.25rem; line-height: 1; }
