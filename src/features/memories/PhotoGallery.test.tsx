@@ -60,7 +60,8 @@ it('uses the same compact action sizing for adding photos as saving a note', () 
 
   render(<PhotoGallery date="2026-07-30" repository={repository} />);
 
-  expect(screen.getByTitle('选择当天的照片')).toHaveClass('photo-upload-action');
+  const uploadButton = screen.getByTitle('选择当天的照片');
+  expect(uploadButton).toHaveClass('photo-upload-action');
 });
 
 it('adds the shared scroll viewport once three thumbnails are present', async () => {

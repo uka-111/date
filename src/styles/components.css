@@ -636,6 +636,8 @@
 }
 .upload-button:hover { background: var(--coral-dark); }
 .upload-button > span { font-size: 1.25rem; line-height: 1; }
+.photo-upload-action { min-height: 34px; height: 34px; gap: 6px; padding: 7px 11px; font-size: 1rem; line-height: 1.2; }
+.photo-upload-action > span { font-size: 1rem; }
 .upload-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .photo-gallery .upload-button,
 .daily-note-actions { margin-top: auto; }
