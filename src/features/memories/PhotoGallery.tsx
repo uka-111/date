@@ -78,12 +78,15 @@ export function PhotoGallery({ date, repository, ownerId, readOnly = false, onCh
     stage.addEventListener('wheel', handleWheel, { passive: false });
     return () => stage.removeEventListener('wheel', handleWheel);
   }, [active]);
-  return <section className="photo-gallery" aria-label="当天照片">
+  const photoCountClass = photos.length >= 4 ? 'photo-gallery-many' : `photo-gallery-count-${photos.length}`;
+  return <section className={`photo-gallery ${photoCountClass}`} aria-label="当天照片">
     <div className="memory-header"><h4>当天照片</h4><span>{photos.length}/{MAX_LOCAL_PHOTOS_PER_DAY}</span></div>
-    <div className="photo-grid">{photos.map((photo) => <figure key={photo.id}>
+    <div className={photos.length >= 4 ? 'photo-scroll' : undefined}>
+    <div className="photo-grid" data-count={photos.length}>{photos.map((photo) => <figure key={photo.id}>
       <button className="photo-open" type="button" onClick={() => openPhoto(photo)}><img src={photo.thumbnailUrl ?? URL.createObjectURL(photo.thumbnail)} alt={photo.title || '当天照片'} /></button>
       {!readOnly && <button className="photo-delete" type="button" aria-label="删除当天照片" onClick={() => remove(photo)}>×</button>}
     </figure>)}</div>
+    </div>
     {!readOnly && <label className="upload-button" title="选择当天的照片">
       <span aria-hidden="true">+</span>
       {uploading ? '正在添加...' : '添加照片'}

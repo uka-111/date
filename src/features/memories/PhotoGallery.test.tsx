@@ -55,6 +55,25 @@ it('shows only the selected member photos for the same day', async () => {
   expect(await screen.findAllByRole('img')).toHaveLength(1);
 });
 
+it('adds a scroll viewport once four thumbnails are present', async () => {
+  const records = Array.from({ length: 4 }, (_, index) => ({
+    id: `photo-${index}`,
+    date: '2026-07-30',
+    blob: new Blob(['photo'], { type: 'image/jpeg' }),
+    thumbnail: new Blob(['thumb'], { type: 'image/jpeg' }),
+    title: '',
+    createdAt: '2026-07-30T12:00:00.000Z',
+    order: index,
+  }));
+
+  render(<PhotoGallery date="2026-07-30" repository={createRepository(records)} />);
+
+  const gallery = await screen.findByRole('region', { name: '当天照片' });
+  expect(gallery).toHaveClass('photo-gallery-many');
+  expect(gallery.querySelector('.photo-scroll')).toBeInTheDocument();
+  expect(gallery.querySelector('.photo-grid')).toHaveAttribute('data-count', '4');
+});
+
 it('clears the previous member photos while loading the next member photos', async () => {
   const himPhoto: PhotoRecord = {
     id: 'photo-him',
