@@ -1,4 +1,6 @@
 {
+  "buildCommand": "npm run build:rebuild",
+  "outputDirectory": "rebuild/dist",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
     {
