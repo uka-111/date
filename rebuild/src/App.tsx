@@ -337,6 +337,7 @@ function AuthScreen({ view, onViewChange, onLoginSuccess }: {
   const [feedback, setFeedback] = useState('');
   const [feedbackError, setFeedbackError] = useState(false);
   const [loginPending, setLoginPending] = useState(false);
+  const [registerPending, setRegisterPending] = useState(false);
   const clearField = (field: string) => {
     setErrors((current) => ({ ...current, [field]: '' }));
     setFeedback('');
@@ -381,7 +382,7 @@ function AuthScreen({ view, onViewChange, onLoginSuccess }: {
       setLoginPending(false);
     }
   };
-  const submitRegister = (event: FormEvent<HTMLFormElement>) => {
+  const submitRegister = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
     if (!registerValues.name.trim()) nextErrors.name = '请输入昵称';
@@ -394,9 +395,38 @@ function AuthScreen({ view, onViewChange, onLoginSuccess }: {
     if (!registerValues.agreement) {
       setFeedback('请先同意隐私说明与使用说明');
       setFeedbackError(true);
-    } else {
-      setFeedback(nextErrors.name || nextErrors.email || nextErrors.password || nextErrors.confirmPassword ? '' : '空间创建信息已确认。');
-      setFeedbackError(false);
+      return;
+    }
+    setFeedback(nextErrors.name || nextErrors.email || nextErrors.password || nextErrors.confirmPassword ? '' : '');
+    setFeedbackError(false);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setRegisterPending(true);
+    try {
+      const { client } = getSupabaseBrowserRuntime();
+      const { data, error } = await client.auth.signUp({
+        email: registerValues.email.trim(),
+        password: registerValues.password,
+        options: {
+          data: { name: registerValues.name.trim() },
+        },
+      });
+      if (error) {
+        setFeedback(error.message.toLowerCase().includes('already registered') ? '该邮箱已注册' : '注册失败，请检查信息后重试');
+        setFeedbackError(true);
+        return;
+      }
+      if (data.session) {
+        onLoginSuccess();
+      } else {
+        setFeedback('注册成功，请查收邮箱完成验证');
+        setFeedbackError(false);
+      }
+    } catch {
+      setFeedback('注册失败，请检查信息后重试');
+      setFeedbackError(true);
+    } finally {
+      setRegisterPending(false);
     }
   };
   const loginUpdate = (key: 'email' | 'password', value: string) => {
@@ -441,7 +471,7 @@ function AuthScreen({ view, onViewChange, onLoginSuccess }: {
               <div className="auth-field"><PasswordField id="auth-register-password" label="设置密码" value={registerValues.password} onChange={(value) => registerUpdate('password', value)} placeholder="至少 8 位字符" autocomplete="new-password" /><p className="auth-field-error">{errors.password}</p></div>
               <div className="auth-field"><PasswordField id="auth-register-confirm-password" label="确认密码" value={registerValues.confirmPassword} onChange={(value) => registerUpdate('confirmPassword', value)} placeholder="请再次输入密码" autocomplete="new-password" /><p className="auth-field-error">{errors.confirmPassword}</p></div>
               <label className="auth-agreement"><input type="checkbox" checked={registerValues.agreement} onChange={(event) => { setRegisterValues((current) => ({ ...current, agreement: event.target.checked })); setFeedback(''); setFeedbackError(false); }} /><span>我已阅读并同意<a href="#privacy">隐私说明</a>与<a href="#terms">使用说明</a></span></label>
-              <button className="auth-primary-button" type="submit">创建空间</button>
+              <button className="auth-primary-button" type="submit" disabled={registerPending}>{registerPending ? '创建中…' : '创建空间'}</button>
               <p className={`auth-feedback ${feedbackError ? 'error' : ''}`}>{feedback}</p>
             </form>
           )}
