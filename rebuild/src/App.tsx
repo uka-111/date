@@ -4,6 +4,7 @@ import { createCalendarMarks, createRecordsViewModel, type CalendarMark as ViewC
 import { useCloudSnapshot } from './cloudBridge';
 import type { PhotoRecord } from '../../src/storage/photoRepository';
 import type { InvitationResponse } from '../../src/domain/invitations';
+import { getSupabaseBrowserRuntime } from '../../src/lib/supabaseClient';
 
 type Scale = 'month' | 'year';
 type Page = 'calendar' | 'invite' | 'plans' | 'me';
@@ -325,16 +326,17 @@ function BrandIllustration({ view }: { view: AuthView }) {
   );
 }
 
-function AuthScreen({ view, onViewChange, onEnterWorkspace }: {
+function AuthScreen({ view, onViewChange, onLoginSuccess }: {
   view: AuthView;
   onViewChange: (view: AuthView) => void;
-  onEnterWorkspace: () => void;
+  onLoginSuccess: () => void;
 }) {
   const [loginValues, setLoginValues] = useState({ email: '', password: '' });
   const [registerValues, setRegisterValues] = useState({ name: '', email: '', password: '', confirmPassword: '', agreement: false });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState('');
   const [feedbackError, setFeedbackError] = useState(false);
+  const [loginPending, setLoginPending] = useState(false);
   const clearField = (field: string) => {
     setErrors((current) => ({ ...current, [field]: '' }));
     setFeedback('');
@@ -347,7 +349,7 @@ function AuthScreen({ view, onViewChange, onEnterWorkspace }: {
     onViewChange(nextView);
     window.scrollTo(0, 0);
   };
-  const submitLogin = (event: FormEvent<HTMLFormElement>) => {
+  const submitLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
     if (!loginValues.email.trim()) nextErrors.email = '请输入邮箱地址';
@@ -355,8 +357,29 @@ function AuthScreen({ view, onViewChange, onEnterWorkspace }: {
     if (!loginValues.password) nextErrors.password = '请输入密码';
     else if (loginValues.password.length < 8) nextErrors.password = '密码至少需要 8 位字符';
     setErrors(nextErrors);
-    setFeedback(nextErrors.email || nextErrors.password ? '' : '登录信息已确认，当前为原型反馈。');
+    setFeedback('');
     setFeedbackError(false);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setLoginPending(true);
+    try {
+      const { client } = getSupabaseBrowserRuntime();
+      const { error } = await client.auth.signInWithPassword({
+        email: loginValues.email.trim(),
+        password: loginValues.password,
+      });
+      if (error) {
+        setFeedback('邮箱或密码错误');
+        setFeedbackError(true);
+        return;
+      }
+      onLoginSuccess();
+    } catch {
+      setFeedback('邮箱或密码错误');
+      setFeedbackError(true);
+    } finally {
+      setLoginPending(false);
+    }
   };
   const submitRegister = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -372,7 +395,7 @@ function AuthScreen({ view, onViewChange, onEnterWorkspace }: {
       setFeedback('请先同意隐私说明与使用说明');
       setFeedbackError(true);
     } else {
-      setFeedback(nextErrors.name || nextErrors.email || nextErrors.password || nextErrors.confirmPassword ? '' : '空间创建信息已确认，当前为原型反馈。');
+      setFeedback(nextErrors.name || nextErrors.email || nextErrors.password || nextErrors.confirmPassword ? '' : '空间创建信息已确认。');
       setFeedbackError(false);
     }
   };
@@ -384,7 +407,6 @@ function AuthScreen({ view, onViewChange, onEnterWorkspace }: {
     setRegisterValues((current) => ({ ...current, [key]: value }));
     clearField(key);
   };
-  const isSuccess = feedback.endsWith('当前为原型反馈。') && !feedbackError;
   const login = view === 'login';
   return (
     <main className="auth-page">
@@ -408,10 +430,9 @@ function AuthScreen({ view, onViewChange, onEnterWorkspace }: {
             <form className="auth-form" onSubmit={submitLogin} noValidate>
               <div className="auth-field"><label htmlFor="auth-login-email">邮箱</label><input className="auth-input" id="auth-login-email" type="email" autoComplete="email" placeholder="请输入邮箱地址" value={loginValues.email} onChange={(event) => loginUpdate('email', event.target.value)} /><p className="auth-field-error">{errors.email}</p></div>
               <div className="auth-field"><PasswordField id="auth-login-password" label="密码" value={loginValues.password} onChange={(value) => loginUpdate('password', value)} placeholder="请输入密码" autocomplete="current-password" /><p className="auth-field-error">{errors.password}</p></div>
-              <div className="auth-form-row"><button className="auth-text-link" type="button" onClick={() => { setFeedback('找回密码入口已准备好，当前为原型反馈。'); setFeedbackError(false); }}>忘记密码？</button></div>
-              <button className="auth-primary-button" type="submit">登录</button>
+              <div className="auth-form-row"><button className="auth-text-link" type="button" onClick={() => { setFeedback('找回密码功能暂未开放。'); setFeedbackError(false); }}>忘记密码？</button></div>
+              <button className="auth-primary-button" type="submit" disabled={loginPending}>{loginPending ? '登录中…' : '登录'}</button>
               <p className={`auth-feedback ${feedbackError ? 'error' : ''}`}>{feedback}</p>
-              {isSuccess && <button className="auth-enter-button" type="button" onClick={onEnterWorkspace}>进入共享空间</button>}
             </form>
           ) : (
             <form className="auth-form auth-register-form" onSubmit={submitRegister} noValidate>
@@ -422,7 +443,6 @@ function AuthScreen({ view, onViewChange, onEnterWorkspace }: {
               <label className="auth-agreement"><input type="checkbox" checked={registerValues.agreement} onChange={(event) => { setRegisterValues((current) => ({ ...current, agreement: event.target.checked })); setFeedback(''); setFeedbackError(false); }} /><span>我已阅读并同意<a href="#privacy">隐私说明</a>与<a href="#terms">使用说明</a></span></label>
               <button className="auth-primary-button" type="submit">创建空间</button>
               <p className={`auth-feedback ${feedbackError ? 'error' : ''}`}>{feedback}</p>
-              {isSuccess && <button className="auth-enter-button" type="button" onClick={onEnterWorkspace}>进入共享空间</button>}
             </form>
           )}
           {login ? <p className="auth-switch-copy">还没有账号？ <button className="auth-text-link" type="button" onClick={() => switchView('register')}>注册</button></p> : <p className="auth-switch-copy">已经有账号？ <button className="auth-text-link" type="button" onClick={() => switchView('login')}>返回登录</button></p>}
@@ -1100,7 +1120,7 @@ export function App() {
     setEnteredWorkspace(true);
   };
   if (enteredWorkspace) return <WorkspaceApp />;
-  return <AuthScreen view={authView} onViewChange={setAuthView} onEnterWorkspace={enterWorkspace} />;
+  return <AuthScreen view={authView} onViewChange={setAuthView} onLoginSuccess={enterWorkspace} />;
 }
 
 function NavItem({ icon, label, active = false, onClick }: { icon: 'calendar' | 'invite' | 'plans' | 'me'; label: string; active?: boolean; onClick?: () => void }) {
